@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ullswater Corporation - Fleet Ledger, Form Designer & Messenger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- ZXing Barcode & QR Code Scanner Library -->
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-ticket-modal, #printable-ticket-modal * { visibility: visible; }
+            #printable-ticket-modal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; color: black !important; }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col items-center justify-center p-0 md:p-6 select-none">
+
+    <!-- SECURE LOGIN MODAL -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-8 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="bg-blue-600 text-white w-12 h-12 rounded-2xl mx-auto flex items-center justify-center shadow-lg text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white tracking-tight">Ullswater Corporation</h2>
+                <p class="text-xs text-slate-400">Secure Remote Access & Authentication</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Username / Operator ID</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="login-username" required placeholder="e.g. admin" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl pl-10 pr-4 py-3 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl pl-10 pr-4 py-3 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-3.5 rounded-xl shadow-lg transition active:scale-[0.98] text-sm">
+                    Sign In to Terminal
+                </button>
+            </form>
+            <div class="text-center text-[11px] text-slate-500">
+                Default Admin: <span class="font-mono text-slate-400">admin</span> / <span class="font-mono text-slate-400">admin123</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="w-full max-w-md md:max-w-5xl lg:max-w-6xl h-full md:h-[92vh] bg-slate-950 md:rounded-3xl overflow-hidden flex flex-col md:flex-row border border-slate-800 shadow-2xl">
+
+        <!-- Sidebar Navigation -->
+        <aside class="bg-slate-900 border-r border-slate-800 md:w-64 flex md:flex-col justify-between shrink-0 z-20">
+            <div class="p-4 md:p-6 flex items-center justify-between md:justify-start space-x-3 border-b border-slate-800">
+                <div class="bg-blue-600 text-white p-2 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-truck-monster text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm md:text-base tracking-tight text-white leading-tight">Ullswater Corp</h1>
+                    <span class="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Secure Ledger Active
+                    </span>
+                </div>
+            </div>
+
+            <nav class="flex md:flex-col flex-1 justify-around md:justify-start md:space-y-1.5 p-2 md:p-4">
+                <button onclick="switchTab('entry')" id="nav-entry" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-white bg-blue-600 shadow-md">
+                    <i class="fa-solid fa-keyboard w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">Data Entry</span>
+                </button>
+                <button onclick="switchTab('ledger')" id="nav-ledger" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-book-open w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">Ledger & Tickets</span>
+                </button>
+                <button onclick="switchTab('comms')" id="nav-comms" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-video w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">Webcam & Messenger</span>
+                </button>
+                <button onclick="switchTab('designer')" id="nav-designer" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                    <i class="fa-solid fa-pen-ruler w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">Form Designer</span>
+                </button>
+                <button onclick="switchTab('users')" id="nav-users" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                    <i class="fa-solid fa-users-gear w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">User Access</span>
+                </button>
+                <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                    <i class="fa-solid fa-gear w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">Connection</span>
+                </button>
+            </nav>
+
+            <div class="hidden md:block p-4 border-t border-slate-800 text-xs text-slate-400">
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800/80 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Operator:</span>
+                        <span id="sidebar-current-user" class="font-bold text-blue-300 truncate max-w-[110px]">Admin</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">Queue:</span>
+                        <span id="sidebar-queue" class="font-mono text-emerald-400 font-bold">0 Pending</span>
+                    </div>
+                    <button onclick="logoutUser()" class="w-full mt-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 py-1.5 rounded-lg font-semibold text-[11px] transition">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+
+            <header class="bg-slate-900 border-b border-slate-800 px-4 md:px-6 py-3.5 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-3">
+                    <h2 id="header-title" class="font-bold text-base md:text-lg text-white">Remote Data Entry</h2>
+                    <span id="active-form-badge" class="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs px-2.5 py-0.5 rounded-full font-medium hidden md:inline-block">Default Form</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="gps-tracker-toggle" onclick="toggleAutoGpsTracker()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md">
+                        <span id="gps-tracker-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
+                        <span id="gps-tracker-label">Auto GPS Log: OFF</span>
+                    </button>
+
+                    <div class="hidden sm:flex items-center bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs gap-2">
+                        <i class="fa-solid fa-user-shield text-blue-400"></i>
+                        <span id="header-user-display" class="text-white font-medium">admin</span>
+                    </div>
+                    <button onclick="openScannerModalDirect()" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-md transition">
+                        <i class="fa-solid fa-camera"></i>
+                        <span class="hidden sm:inline">Camera Scan</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: DATA ENTRY -->
+            <div id="tab-entry" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 flex flex-col">
+                <div class="max-w-2xl w-full mx-auto space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-blue-500/10 p-2.5 rounded-xl text-blue-400 border border-blue-500/20">
+                                <i class="fa-solid fa-file-lines text-lg"></i>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider">Permitted Active Form</label>
+                                <select id="entry-form-select" onchange="onActiveFormChange(this.value)" class="mt-0.5 bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none w-full font-medium"></select>
+                            </div>
+                        </div>
+                        <button onclick="resetCurrentFormInputs()" class="text-xs text-slate-400 hover:text-white px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 transition">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Clear
+                        </button>
+                    </div>
+
+                    <form id="dynamic-entry-form" onsubmit="handleFormSubmit(event)" class="space-y-4"></form>
+
+                    <div class="pt-4 flex items-center gap-3">
+                        <button type="button" onclick="handleFormSubmit(event)" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg flex items-center justify-center space-x-2 transition active:scale-[0.98]">
+                            <i class="fa-solid fa-ticket"></i>
+                            <span>Submit & Generate Dispatch Ticket</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: LEDGER & TICKETS -->
+            <div id="tab-ledger" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
+                <div class="max-w-6xl w-full mx-auto space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Operations Ledger & Dispatch Tickets</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Comprehensive audit trail with local timestamp tracking.</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="exportLogsCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-csv text-emerald-400"></i> Export CSV
+                            </button>
+                            <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-file-import text-blue-400"></i> Import CSV
+                                <input type="file" accept=".csv" class="hidden" onchange="importLogsCSV(event)">
+                            </label>
+                            <button onclick="syncToCloudEndpoint()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Sync Sheets
+                            </button>
+                            <button onclick="wipeAllData()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md" title="Wipe All Tickets">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Clear Logs
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-800/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-700/80">
+                                    <tr>
+                                        <th class="p-3.5">Ticket ID</th>
+                                        <th class="p-3.5">Local Timestamp</th>
+                                        <th class="p-3.5">Operator</th>
+                                        <th class="p-3.5">Form Name</th>
+                                        <th class="p-3.5">Captured Payload</th>
+                                        <th class="p-3.5">Status</th>
+                                        <th class="p-3.5 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ledger-table-body" class="divide-y divide-slate-800/60 font-mono"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: WEBCAM & MESSENGER -->
+            <div id="tab-comms" class="tab-content flex-1 overflow-hidden p-4 md:p-6 hidden flex flex-col">
+                <div class="max-w-6xl w-full mx-auto h-full flex flex-col md:flex-row gap-4">
+                    <div class="w-full md:w-1/2 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col space-y-4 shadow-xl">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-video text-blue-400"></i> Live Webcam Terminal
+                            </h3>
+                            <div class="flex gap-2">
+                                <button onclick="startWebcamFeed()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-md">
+                                    <i class="fa-solid fa-play mr-1"></i> Start
+                                </button>
+                                <button onclick="stopWebcamFeed()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-md">
+                                    <i class="fa-solid fa-stop mr-1"></i> Stop
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative bg-black rounded-xl overflow-hidden flex-1 min-h-[240px] border border-slate-800 flex items-center justify-center">
+                            <video id="comms-webcam-video" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
+                            <div id="webcam-status-badge" class="absolute bottom-3 left-3 bg-slate-950/80 border border-slate-700 text-slate-300 text-[10px] px-2.5 py-1 rounded-full font-mono flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-rose-500" id="webcam-status-dot"></span> Webcam Standby
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="toggleAudioMute()" id="mic-mute-btn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-microphone text-emerald-400" id="mic-icon"></i> <span id="mic-label">Mic Active</span>
+                            </button>
+                            <button onclick="toggleVideoHide()" id="video-hide-btn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-eye text-blue-400" id="video-icon"></i> <span id="video-label">Camera ON</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-1/2 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col space-y-4 shadow-xl">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+                                <h3 class="text-sm font-bold text-white">Direct Messenger Channel</h3>
+                            </div>
+                            <span id="active-chat-user-label" class="text-xs text-blue-400 font-mono font-semibold">Select a user to chat</span>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-400 font-semibold pl-1">Chat With:</span>
+                            <select id="messenger-user-select" onchange="selectMessengerRecipient(this.value)" class="flex-1 bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-3 py-1.5 font-medium"></select>
+                        </div>
+
+                        <div id="messenger-chat-box" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-3 overflow-y-auto space-y-3 font-mono text-xs min-h-[180px]">
+                            <div class="text-center py-12 text-slate-500 font-sans">Choose a user from above to start communicating.</div>
+                        </div>
+
+                        <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+                            <input type="text" id="messenger-input" placeholder="Type secure message..." class="flex-1 bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md transition">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: FORM DESIGNER -->
+            <div id="tab-designer" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
+                <div class="max-w-5xl w-full mx-auto space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Advanced Form Builder & Formulas</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Configure form templates, field computations, time pickers, and role access control.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openNewFormModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                                <i class="fa-solid fa-plus"></i> New Form
+                            </button>
+                            <button onclick="saveAllFormDesigns()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                            <div class="flex items-center justify-between px-1">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Form Templates</h4>
+                            </div>
+                            <div id="designer-form-list" class="space-y-2"></div>
+                        </div>
+
+                        <div id="form-editor-workspace" class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 space-y-6">
+                            <div class="text-center py-12 text-slate-500">Select a form from the left to configure fields and formulas.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: USER ACCESS -->
+            <div id="tab-users" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
+                <div class="max-w-4xl w-full mx-auto space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">User Accounts & Roles</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Manage operator credentials and role access levels.</p>
+                        </div>
+                        <button onclick="openAddUserModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus"></i> Add User Account
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-800/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-700/80">
+                                    <tr>
+                                        <th class="p-3.5">Username</th>
+                                        <th class="p-3.5">Full Name / Role</th>
+                                        <th class="p-3.5">Permitted Forms Access</th>
+                                        <th class="p-3.5 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body" class="divide-y divide-slate-800/60"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: CONNECTION SETTINGS -->
+            <div id="tab-settings" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
+                <div class="max-w-2xl w-full mx-auto space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up text-blue-400"></i> Dedicated Sheet Connection
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Configure your Google Apps Script Web App URL so each form logs into its own dedicated sheet tab.</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="setConnectionType('token')" id="conn-btn-token" class="p-4 rounded-xl border text-left transition flex flex-col gap-1 bg-blue-600/20 border-blue-500 text-white">
+                                <div class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-key text-blue-400"></i> Google Apps Script Web App</div>
+                                <div class="text-[11px] text-slate-400">Automatic multi-tab worksheet routing via Web App URL</div>
+                            </button>
+                            <button onclick="setConnectionType('sheets')" id="conn-btn-sheets" class="p-4 rounded-xl border text-left transition flex flex-col gap-1 bg-slate-950 border-slate-800 text-slate-400">
+                                <div class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-file-excel text-emerald-400"></i> Direct Sheet Link</div>
+                                <div class="text-[11px] text-slate-400">Spreadsheet reference link for quick viewing</div>
+                            </button>
+                        </div>
+
+                        <div id="conn-panel-token" class="space-y-4 pt-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Security Token / Authorization Key</label>
+                                <input type="text" id="setting-token" value="ULLSWATER-CORP-SECURE-9021" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Google Apps Script Web App URL</label>
+                                <input type="text" id="setting-webapp-id" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div id="conn-panel-sheets" class="space-y-4 pt-2 hidden">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Google Sheet Web View URL</label>
+                                <input type="text" id="setting-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..." class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono text-xs">
+                            </div>
+                        </div>
+
+                        <div class="pt-4 flex items-center justify-between border-t border-slate-800">
+                            <span id="connection-status-indicator" class="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Dedicated Sheet Router Ready
+                            </span>
+                            <button onclick="saveConnectionSettings()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-2.5 rounded-xl text-xs transition shadow-md">
+                                <i class="fa-solid fa-check mr-1"></i> Save Connection
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-database text-amber-400"></i> System Database Backup & Restore
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Save a full system JSON backup (users, forms, designs, and tickets) or restore/clear the entire database.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button onclick="exportSystemDatabaseJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold p-3.5 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 shadow-md">
+                                <i class="fa-solid fa-file-arrow-down text-amber-400 text-base"></i> Save Database JSON
+                            </button>
+                            <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold p-3.5 rounded-xl border border-slate-700 transition flex items-center justify-center gap-2 cursor-pointer shadow-md">
+                                <i class="fa-solid fa-file-arrow-up text-blue-400 text-base"></i> Import Database
+                                <input type="file" accept=".json" class="hidden" onchange="importSystemDatabaseJSON(event)">
+                            </label>
+                            <button onclick="clearSystemDatabase()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-semibold p-3.5 rounded-xl border border-rose-500/30 transition flex items-center justify-center gap-2 shadow-md">
+                                <i class="fa-solid fa-triangle-exclamation text-base"></i> Clear Database
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- PRINTABLE TICKET MODAL -->
+    <div id="ticket-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col">
+            <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-ticket text-blue-400"></i> Dispatch Ticket & Dedicated Sheet Record
+                </h3>
+                <button onclick="closeTicketModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div id="printable-ticket-modal" class="p-8 space-y-6 bg-white text-slate-900 rounded-2xl m-4 font-sans shadow-inner">
+                <div class="flex justify-between items-start border-b-2 border-slate-900 pb-4">
+                    <div>
+                        <h1 class="text-xl font-black uppercase tracking-tight">Ullswater Corporation</h1>
+                        <p class="text-xs text-slate-600 font-medium">Heavy Equipment Rentals, Hauling & Mining Extraction</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="ticket-id-display" class="font-mono font-bold text-sm bg-slate-100 px-3 py-1 rounded border border-slate-300">TKT-2026-0001</span>
+                        <p id="ticket-timestamp-display" class="text-[10px] text-slate-500 mt-1">Local Time</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <span class="font-bold text-slate-500 uppercase block">Operator / Accountable:</span>
+                        <span id="ticket-operator-display" class="font-mono font-bold text-slate-900">@admin</span>
+                    </div>
+                    <div>
+                        <span class="font-bold text-slate-500 uppercase block">Dedicated Form Sheet Tab:</span>
+                        <span id="ticket-formname-display" class="font-semibold text-blue-700">Warehouse Stock Audit</span>
+                    </div>
+                </div>
+
+                <div class="border border-slate-300 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 border-b border-slate-300 text-slate-700 uppercase font-bold">
+                            <tr>
+                                <th class="p-2.5">Field Item</th>
+                                <th class="p-2.5">Captured Payload Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticket-payload-table" class="divide-y divide-slate-200 font-mono"></tbody>
+                    </table>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-between items-center">
+                    <div class="text-center">
+                        <svg id="ticket-barcode-svg" class="max-h-12 mx-auto"></svg>
+                        <span id="ticket-barcode-text" class="font-mono text-[10px] text-slate-500">ULLSWATER-TKT-0001</span>
+                    </div>
+                    <div class="text-right text-[10px] text-slate-500 font-mono">
+                        <p>Status: <span id="ticket-status-display" class="font-bold text-emerald-600">VALID</span></p>
+                        <p>Authorized Local Digital Dispatch</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 px-6 py-4 border-t border-slate-800 flex justify-end gap-2">
+                <button onclick="printCurrentTicket()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-print"></i> Print Ticket
+                </button>
+                <button onclick="closeTicketModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT ENTRY MODAL -->
+    <div id="edit-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-blue-400"></i> Edit Ledger Dispatch Entry
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-4" id="edit-modal-fields-container"></div>
+            <div class="bg-slate-900 px-6 py-4 border-t border-slate-800 flex justify-end gap-2">
+                <button onclick="closeEditModal()" class="bg-slate-800 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl">Cancel</button>
+                <button onclick="saveEditedLedgerEntry()" class="bg-blue-600 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-md">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIVE CAMERA SCANNER & OCR MODAL -->
+    <div id="scanner-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+            <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                <h3 id="scanner-modal-title" class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-blue-400"></i> VIVID 100% Barcode, QR & OCR Scanner
+                </h3>
+                <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4 flex-1 flex flex-col items-center">
+                <div class="relative bg-black rounded-2xl w-full h-64 overflow-hidden border border-slate-800 flex items-center justify-center">
+                    <video id="camera-video-stream" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
+                    <!-- Hidden video element required by ZXing decoder reader -->
+                    <video id="zxing-video-element" autoplay playsinline muted class="hidden"></video>
+                    <canvas id="camera-canvas" class="hidden"></canvas>
+                    <div id="scanner-laser" class="absolute top-1/2 left-4 right-4 h-0.5 bg-rose-500 shadow-[0_0_12px_#f43f5e] animate-bounce"></div>
+                    <div class="absolute inset-x-8 inset-y-12 border-2 border-dashed border-cyan-400/60 rounded-xl pointer-events-none"></div>
+                </div>
+                <div id="scanner-status-text" class="text-xs text-slate-300 text-center font-mono">Initializing camera, Barcodes, QR & OCR engine...</div>
+                <div class="w-full flex gap-2">
+                    <button onclick="captureAndProcessVividOCR()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-file-image"></i> Capture & Read Letters/Script (OCR)
+                    </button>
+                    <button onclick="closeScannerModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-5 py-3 rounded-xl transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD USER MODAL -->
+    <div id="user-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700/80 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2"><i class="fa-solid fa-user-plus text-blue-400"></i> Add Operator Account</h3>
+                <button onclick="closeUserModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div><label class="block text-xs font-medium text-slate-400 uppercase mb-1">Username</label><input type="text" id="modal-username" placeholder="e.g. j.borja" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono"></div>
+                <div><label class="block text-xs font-medium text-slate-400 uppercase mb-1">Full Name & Title</label><input type="text" id="modal-fullname" placeholder="e.g. Jose Mari Borja" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5"></div>
+                <div><label class="block text-xs font-medium text-slate-400 uppercase mb-1">Password</label><input type="password" id="modal-password" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono"></div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Access Role</label>
+                    <select id="modal-role" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5">
+                        <option value="Administrator">Administrator</option>
+                        <option value="Data Entry Operator">Data Entry Operator</option>
+                        <option value="Auditor">Auditor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="bg-slate-900 px-6 py-4 border-t border-slate-800 flex justify-end gap-2">
+                <button onclick="closeUserModal()" class="bg-slate-800 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl">Cancel</button>
+                <button onclick="saveUserAccount()" class="bg-blue-600 text-white text-xs font-semibold px-5 py-2.5 rounded-xl">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DROPDOWN OPTIONS MANAGER MODAL -->
+    <div id="dropdown-options-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list text-blue-400"></i> Manage Dropdown Options
+                </h3>
+                <button onclick="closeDropdownOptionsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" id="new-dropdown-item-input" placeholder="Add new option item..." class="flex-1 bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5">
+                    <button onclick="addDropdownOptionItem()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold">Add</button>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-52 overflow-y-auto space-y-2" id="modal-dropdown-items-container"></div>
+            </div>
+            <div class="bg-slate-900 px-6 py-4 border-t border-slate-800 flex justify-end">
+                <button onclick="closeDropdownOptionsModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <script>
+        let users = JSON.parse(localStorage.getItem('ullswater_users')) || [
+            { username: 'admin', fullname: 'Jose Mari Borja (Director)', role: 'Administrator', pass: 'admin123' },
+            { username: 'operator1', fullname: 'Meredy Panti (Manager)', role: 'Data Entry Operator', pass: 'operator123' }
+        ];
+        let activeUser = localStorage.getItem('ullswater_active_user') || null;
+        let activeUserRole = localStorage.getItem('ullswater_active_role') || null;
+
+        let defaultForms = [
+            {
+                id: 'form-inventory',
+                name: 'Warehouse Stock Audit',
+                icon: 'fa-boxes-stacked',
+                allowedRoles: ['Administrator', 'Data Entry Operator'],
+                fields: [
+                    { id: 'f1', label: 'Item Barcode', type: 'barcode', required: true, hidden: false },
+                    { id: 'f2', label: 'Location Zone', type: 'dropdown', options: ['Zone A-1', 'Zone B-2', 'Loading Dock', 'Warehouse 2'], required: true, hidden: false },
+                    { id: 'f5', label: 'Quantity Count', type: 'numbers', required: true, hidden: false },
+                    { id: 'f6', label: 'Unit Price (₱)', type: 'numbers', required: true, hidden: false },
+                    { id: 'f_total', label: 'Total Amount (₱)', type: 'computation', formula: 'f5 * f6', required: false, hidden: false },
+                    { id: 'f_time', label: 'Dispatch Time', type: 'time', required: true, hidden: false },
+                    { id: 'f3', label: 'GPS Coordinates & Map', type: 'location', required: false, hidden: false },
+                    { id: 'f4', label: 'Item Photo', type: 'picture', required: false, hidden: false }
+                ]
+            },
+            {
+                id: 'form-delivery',
+                name: 'Package Delivery Log',
+                icon: 'fa-truck-fast',
+                allowedRoles: ['Administrator'],
+                fields: [
+                    { id: 'd1', label: 'Tracking Number', type: 'barcode', required: true, hidden: false },
+                    { id: 'd2', label: 'Delivery Date', type: 'date', required: true, hidden: false },
+                    { id: 'd_time', label: 'Delivery Time', type: 'time', required: true, hidden: false },
+                    { id: 'd3', label: 'GPS Coordinates & Map', type: 'location', required: true, hidden: false },
+                    { id: 'd4', label: 'Proof of Delivery Photo', type: 'picture', required: false, hidden: false },
+                    { id: 'd5', label: 'Status Result', type: 'dropdown', options: ['Delivered', 'Absent', 'Rescheduled', 'Returned'], required: true, hidden: false }
+                ]
+            }
+        ];
+
+        let forms = JSON.parse(localStorage.getItem('ullswater_forms')) || defaultForms;
+        let logs = JSON.parse(localStorage.getItem('ullswater_logs')) || [];
+        let chatMessages = JSON.parse(localStorage.getItem('ullswater_chat_messages')) || [];
+
+        let activeFormId = forms[0].id;
+        let selectedDesignFormId = forms[0].id;
+        let activeTargetFieldId = null;
+        let activeCameraStream = null;
+        let zxingCodeReader = null;
+        let currentEditingTicketId = null;
+        let activeDropdownEditingField = null;
+
+        let activeCommsStream = null;
+        let selectedChatRecipient = null;
+
+        let autoGpsTimer = null;
+        let autoGpsEnabled = localStorage.getItem('ullswater_auto_gps') === 'true';
+
+        window.onload = function() {
+            checkAuthSession();
+            renderFormSelector();
+            renderActiveFormFields();
+            renderDesignerFormList();
+            renderFormEditorWorkspace();
+            renderLedgerTable();
+            renderUsersTable();
+            renderMessengerUsersList();
+            updateSidebarStats();
+            loadSettingsToUI();
+            updateGpsTrackerUI();
+
+            if (autoGpsEnabled) {
+                startAutoGpsTracker();
+            }
+        };
+
+        function getLocalTimestamp() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        function getCurrentTimeString() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function checkAuthSession() {
+            const loginModal = document.getElementById('login-modal');
+            if(!activeUser) {
+                loginModal.classList.remove('hidden');
+            } else {
+                loginModal.classList.add('hidden');
+                document.getElementById('sidebar-current-user').innerText = activeUser;
+                document.getElementById('header-user-display').innerText = `${activeUser} (${activeUserRole || 'Operator'})`;
+                applyRolePermissions();
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const uInput = document.getElementById('login-username').value.trim();
+            const pInput = document.getElementById('login-password').value;
+
+            const matchedUser = users.find(u => u.username === uInput && u.pass === pInput);
+            if(matchedUser) {
+                activeUser = matchedUser.username;
+                activeUserRole = matchedUser.role;
+                localStorage.setItem('ullswater_active_user', activeUser);
+                localStorage.setItem('ullswater_active_role', activeUserRole);
+                
+                const permitted = getPermittedFormsForRole(activeUserRole);
+                if(permitted.length > 0 && !permitted.some(f => f.id === activeFormId)) {
+                    activeFormId = permitted[0].id;
+                }
+
+                document.getElementById('login-modal').classList.add('hidden');
+                checkAuthSession();
+                renderFormSelector();
+                renderActiveFormFields();
+                renderMessengerUsersList();
+                showToast(`Welcome back, ${matchedUser.fullname}!`, 'success');
+            } else {
+                showToast('Invalid username or password.', 'error');
+            }
+        }
+
+        function logoutUser() {
+            stopWebcamFeed();
+            activeUser = null;
+            activeUserRole = null;
+            localStorage.removeItem('ullswater_active_user');
+            localStorage.removeItem('ullswater_active_role');
+            document.getElementById('login-modal').value = '';
+            document.getElementById('login-password').value = '';
+            checkAuthSession();
+            showToast('Signed out successfully.', 'info');
+        }
+
+        function getPermittedFormsForRole(role) {
+            if(role === 'Administrator') return forms;
+            return forms.filter(f => {
+                if(!f.allowedRoles) return true;
+                return f.allowedRoles.includes(role);
+            });
+        }
+
+        function applyRolePermissions() {
+            const restrictedNavs = document.querySelectorAll('.permission-restricted');
+            restrictedNavs.forEach(nav => {
+                const requiredRole = nav.getAttribute('data-required-role');
+                if(activeUserRole !== requiredRole) {
+                    nav.style.opacity = '0.4';
+                    nav.title = `Restricted: Requires ${requiredRole} role`;
+                } else {
+                    nav.style.opacity = '1';
+                    nav.title = '';
+                }
+            });
+        }
+
+        function switchTab(tabName) {
+            const restrictedTabs = ['designer', 'users', 'settings'];
+            if(restrictedTabs.includes(tabName) && activeUserRole !== 'Administrator') {
+                showToast('Access Denied: Administrator role required.', 'error');
+                return;
+            }
+
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-white', 'bg-blue-600', 'shadow-md');
+                btn.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-800');
+            });
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            const activeBtn = document.getElementById('nav-' + tabName);
+            activeBtn.classList.remove('text-slate-400', 'hover:bg-slate-800');
+            activeBtn.classList.add('text-white', 'bg-blue-600', 'shadow-md');
+
+            if(tabName === 'comms' && !activeCommsStream) {
+                startWebcamFeed();
+            }
+        }
+
+        async function startWebcamFeed() {
+            const videoEl = document.getElementById('comms-webcam-video');
+            const statusDot = document.getElementById('webcam-status-dot');
+            try {
+                activeCommsStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                videoEl.srcObject = activeCommsStream;
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                showToast('Webcam and audio feed active', 'success');
+            } catch(err) {
+                showToast('Webcam access error: ' + err.message, 'error');
+            }
+        }
+
+        function stopWebcamFeed() {
+            if(activeCommsStream) {
+                activeCommsStream.getTracks().forEach(track => track.stop());
+                activeCommsStream = null;
+                const videoEl = document.getElementById('comms-webcam-video');
+                if(videoEl) videoEl.srcObject = null;
+                const statusDot = document.getElementById('webcam-status-dot');
+                if(statusDot) statusDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500";
+                showToast('Webcam feed stopped', 'info');
+            }
+        }
+
+        function toggleAudioMute() {
+            if(!activeCommsStream) return;
+            const audioTracks = activeCommsStream.getAudioTracks();
+            if(audioTracks.length > 0) {
+                const enabled = audioTracks[0].enabled;
+                audioTracks[0].enabled = !enabled;
+                const icon = document.getElementById('mic-icon');
+                const label = document.getElementById('mic-label');
+                if(!enabled) {
+                    icon.className = "fa-solid fa-microphone text-emerald-400";
+                    label.innerText = "Mic Active";
+                } else {
+                    icon.className = "fa-solid fa-microphone-slash text-rose-400";
+                    label.innerText = "Muted";
+                }
+            }
+        }
+
+        function toggleVideoHide() {
+            if(!activeCommsStream) return;
+            const videoTracks = activeCommsStream.getVideoTracks();
+            if(videoTracks.length > 0) {
+                const enabled = videoTracks[0].enabled;
+                videoTracks[0].enabled = !enabled;
+                const icon = document.getElementById('video-icon');
+                const label = document.getElementById('video-label');
+                if(!enabled) {
+                    icon.className = "fa-solid fa-eye text-blue-400";
+                    label.innerText = "Camera ON";
+                } else {
+                    icon.className = "fa-solid fa-eye-slash text-rose-400";
+                    label.innerText = "Camera OFF";
+                }
+            }
+        }
+
+        function renderMessengerUsersList() {
+            const select = document.getElementById('messenger-user-select');
+            select.innerHTML = '';
+            const otherUsers = users.filter(u => u.username !== activeUser);
+            if(otherUsers.length === 0) {
+                select.innerHTML = `<option value="">No other users available</option>`;
+                return;
+            }
+            otherUsers.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.username;
+                opt.textContent = `@${u.username} (${u.fullname})`;
+                select.appendChild(opt);
+            });
+            if(otherUsers.length > 0) {
+                selectedChatRecipient = otherUsers[0].username;
+                select.value = selectedChatRecipient;
+                document.getElementById('active-chat-user-label').innerText = `Chatting with @${selectedChatRecipient}`;
+                renderChatMessages();
+            }
+        }
+
+        function selectMessengerRecipient(username) {
+            selectedChatRecipient = username;
+            document.getElementById('active-chat-user-label').innerText = `Chatting with @${username}`;
+            renderChatMessages();
+        }
+
+        function sendChatMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('messenger-input');
+            const text = input.value.trim();
+            if(!text || !selectedChatRecipient) return;
+
+            const newMsg = {
+                id: 'MSG-' + Date.now(),
+                sender: activeUser,
+                recipient: selectedChatRecipient,
+                timestamp: getLocalTimestamp(),
+                message: text
+            };
+
+            chatMessages.push(newMsg);
+            localStorage.setItem('ullswater_chat_messages', JSON.stringify(chatMessages));
+            input.value = '';
+            renderChatMessages();
+        }
+
+        function renderChatMessages() {
+            const chatBox = document.getElementById('messenger-chat-box');
+            chatBox.innerHTML = '';
+            const thread = chatMessages.filter(m => 
+                (m.sender === activeUser && m.recipient === selectedChatRecipient) ||
+                (m.sender === selectedChatRecipient && m.recipient === activeUser)
+            );
+            if(thread.length === 0) {
+                chatBox.innerHTML = `<div class="text-center py-12 text-slate-500 font-sans">No messages yet with @${selectedChatRecipient}. Say hello!</div>`;
+                return;
+            }
+            thread.forEach(m => {
+                const isMe = m.sender === activeUser;
+                chatBox.innerHTML += `
+                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                        <div class="max-w-[80%] rounded-2xl px-3.5 py-2 text-xs ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-slate-800 text-slate-200 rounded-bl-none'}">
+                            <div class="font-bold text-[10px] opacity-75 mb-0.5">@${m.sender} • ${m.timestamp.split(' ')[1]}</div>
+                            <div>${m.message}</div>
+                        </div>
+                    </div>`;
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function toggleAutoGpsTracker() {
+            autoGpsEnabled = !autoGpsEnabled;
+            localStorage.setItem('ullswater_auto_gps', autoGpsEnabled);
+            updateGpsTrackerUI();
+            if (autoGpsEnabled) {
+                startAutoGpsTracker();
+                showToast('5-Minute Auto GPS Location Report Started!', 'success');
+            } else {
+                stopAutoGpsTracker();
+                showToast('Auto GPS Location Report Stopped.', 'info');
+            }
+        }
+
+        function updateGpsTrackerUI() {
+            const btn = document.getElementById('gps-tracker-toggle');
+            const indicator = document.getElementById('gps-tracker-indicator');
+            const label = document.getElementById('gps-tracker-label');
+
+            if (autoGpsEnabled) {
+                btn.className = "bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md";
+                indicator.className = "w-2.5 h-2.5 rounded-full bg-white animate-ping";
+                label.innerText = "Auto GPS Log: 5m Active";
+            } else {
+                btn.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md";
+                indicator.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
+                label.innerText = "Auto GPS Log: OFF";
+            }
+        }
+
+        function startAutoGpsTracker() {
+            stopAutoGpsTracker();
+            executeAutoGpsLog();
+            autoGpsTimer = setInterval(executeAutoGpsLog, 5 * 60 * 1000);
+        }
+
+        function stopAutoGpsTracker() {
+            if (autoGpsTimer) {
+                clearInterval(autoGpsTimer);
+                autoGpsTimer = null;
+            }
+        }
+
+        function executeAutoGpsLog() {
+            if (!navigator.geolocation) return;
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    const acc = position.coords.accuracy.toFixed(1);
+                    const localTime = getLocalTimestamp();
+                    const ticketId = 'GPS-' + String(Math.floor(100000 + Math.random() * 900000));
+                    
+                    const gpsLogEntry = {
+                        id: ticketId,
+                        timestamp: localTime,
+                        user: activeUser || 'system',
+                        formName: 'GPS Location Ping',
+                        formId: 'auto-gps-ping',
+                        data: {
+                            'Operator': activeUser || 'System',
+                            'Latitude': lat,
+                            'Longitude': lon,
+                            'Google Coordinates': `${lat}, ${lon}`,
+                            'Accuracy': `±${acc}m`,
+                            'Google Map Link': `https://www.google.com/maps?q=${lat},${lon}`
+                        },
+                        status: 'VALID'
+                    };
+
+                    logs.unshift(gpsLogEntry);
+                    localStorage.setItem('ullswater_logs', JSON.stringify(logs));
+                    renderLedgerTable();
+                    updateSidebarStats();
+                    postLogToGoogleSheet(gpsLogEntry);
+                },
+                (err) => {},
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        // ==================== 100% RELIABLE ZXING BARCODE/QR & HIGH-EFFICIENCY SCRIPT OCR ====================
+        async function openScannerModal(fieldId) {
+            activeTargetFieldId = fieldId;
+            const modal = document.getElementById('scanner-modal');
+            modal.classList.remove('hidden');
+            const videoEl = document.getElementById('camera-video-stream');
+            const statusText = document.getElementById('scanner-status-text');
+
+            statusText.innerText = "Activating camera for Barcode, QR Code & Script OCR...";
+
+            try {
+                zxingCodeReader = new ZXing.BrowserMultiFormatReader();
+                
+                // Automatically request environment-facing (rear) camera on phones
+                zxingCodeReader.decodeFromVideoDevice(undefined, 'zxing-video-element', (result, err) => {
+                    if (result) {
+                        applyScannedValue(result.getText());
+                    }
+                }).catch(e => console.warn(e));
+
+                // Also display camera feed in preview element
+                activeCameraStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false 
+                });
+                videoEl.srcObject = activeCameraStream;
+                statusText.innerText = "Ready! Center Barcode/QR inside dashed frame or click OCR.";
+
+            } catch (err) {
+                statusText.innerText = "Camera access error: " + err.message;
+                showToast("Camera error: " + err.message, "error");
+            }
+        }
+
+        function openScannerModalDirect() {
+            const permitted = getPermittedFormsForRole(activeUserRole);
+            const form = permitted.find(f => f.id === activeFormId) || permitted[0];
+            const target = form ? form.fields.find(f => !f.hidden && (f.type === 'barcode' || f.type === 'ocr' || f.type === 'text')) : null;
+            if(target) openScannerModal(target.id);
+            else showToast("No valid input field found", "info");
+        }
+
+        function closeScannerModal() {
+            if (zxingCodeReader) {
+                zxingCodeReader.reset();
+                zxingCodeReader = null;
+            }
+            if (activeCameraStream) {
+                activeCameraStream.getTracks().forEach(track => track.stop());
+                activeCameraStream = null;
+            }
+            document.getElementById('scanner-modal').classList.add('hidden');
+        }
+
+        function applyScannedValue(val) {
+            if(activeTargetFieldId) {
+                const el = document.getElementById(`field_${activeTargetFieldId}`);
+                if(el) {
+                    el.value = val;
+                    triggerFieldCalculations();
+                }
+            }
+            closeScannerModal();
+            showToast(`Successfully captured: ${val}`, 'success');
+        }
+
+        // VIVID HIGH-EFFICIENCY SCRIPT OCR ENGINE WITH IMAGE PREPROCESSING
+        async function captureAndProcessVividOCR() {
+            const video = document.getElementById('camera-video-stream');
+            const canvas = document.getElementById('camera-canvas');
+            const statusText = document.getElementById('scanner-status-text');
+
+            if (!video.videoWidth) {
+                showToast('Camera video stream not ready yet.', 'error');
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            statusText.innerText = "Preprocessing image: Enhancing contrast for letters & script...";
+
+            // Advanced Canvas Preprocessing for Crystal-Clear OCR Recognition
+            let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imgData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i], g = data[i + 1], b = data[i + 2];
+                // Grayscale luminance formula
+                let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                // High contrast binarization threshold for alphanumeric characters & cursive script
+                let vividVal = gray < 140 ? 0 : 255;
+                data[i] = vividVal;     // R
+                data[i + 1] = vividVal; // G
+                data[i + 2] = vividVal; // B
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            statusText.innerText = "Running Tesseract AI OCR Engine on letters/script...";
+            try {
+                const result = await Tesseract.recognize(canvas.toDataURL('image/png'), 'eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            statusText.innerText = `OCR Reading Letters/Script: ${Math.round(m.progress * 100)}%`;
+                        }
+                    }
+                });
+
+                const text = result.data.text.trim().replace(/\s+/g, ' ');
+                if(text && text.length > 0) {
+                    applyScannedValue(text);
+                } else {
+                    statusText.innerText = "No text/script detected. Try steadying camera.";
+                    showToast('OCR could not recognize clear letters. Reposition and try again.', 'error');
+                }
+            } catch(err) {
+                statusText.innerText = "OCR Recognition failed.";
+                showToast('OCR Error: ' + err.message, 'error');
+            }
+        }
+
+        function fetchCurrentLocation(fieldId) {
+            const inputEl = document.getElementById(`field_${fieldId}`);
+            const mapLinkEl = document.getElementById(`map_link_${fieldId}`);
+            const mapPreviewEl = document.getElementById(`map_preview_${fieldId}`);
+
+            if (!navigator.geolocation) {
+                showToast('Geolocation is not supported by your browser', 'error');
+                return;
+            }
+            showToast('Acquiring precise Google GPS coordinates...', 'info');
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lon = position.coords.longitude.toFixed(6);
+                    const acc = position.coords.accuracy.toFixed(1);
+                    const coordString = `${lat}, ${lon} (±${acc}m)`;
+                    
+                    inputEl.value = coordString;
+                    triggerFieldCalculations();
+
+                    const mapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+                    if(mapLinkEl) {
+                        mapLinkEl.href = mapsUrl;
+                        mapLinkEl.classList.remove('hidden');
+                    }
+                    if(mapPreviewEl) {
+                        mapPreviewEl.src = `https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(lon)-0.005},${parseFloat(lat)-0.005},${parseFloat(lon)+0.005},${parseFloat(lat)+0.005}&layer=mapnik&marker=${lat},${lon}`;
+                        mapPreviewEl.classList.remove('hidden');
+                    }
+                    showToast('Google GPS coordinates acquired!', 'success');
+                },
+                (error) => {
+                    showToast('Unable to retrieve location: ' + error.message, 'error');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        function handlePictureFileSelect(event, fieldId) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                const hiddenInput = document.getElementById(`field_${fieldId}`);
+                const previewImg = document.getElementById(`preview_img_${fieldId}`);
+                const previewContainer = document.getElementById(`preview_container_${fieldId}`);
+
+                hiddenInput.value = base64Data;
+                if (previewImg && previewContainer) {
+                    previewImg.src = base64Data;
+                    previewContainer.classList.remove('hidden');
+                }
+                showToast('Image captured / attached successfully!', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderFormSelector() {
+            const select = document.getElementById('entry-form-select');
+            select.innerHTML = '';
+            const permitted = getPermittedFormsForRole(activeUserRole);
+            if(permitted.length === 0) {
+                select.innerHTML = `<option value="">No permitted forms assigned to your role</option>`;
+                return;
+            }
+            permitted.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.name;
+                if(f.id === activeFormId) opt.selected = true;
+                select.appendChild(opt);
+            });
+            if(!permitted.some(f => f.id === activeFormId)) {
+                activeFormId = permitted[0].id;
+                select.value = activeFormId;
+            }
+            const activeFormObj = permitted.find(f => f.id === activeFormId);
+            document.getElementById('active-form-badge').innerText = activeFormObj ? activeFormObj.name : '';
+        }
+
+        function onActiveFormChange(formId) {
+            activeFormId = formId;
+            renderFormSelector();
+            renderActiveFormFields();
+        }
+
+        function renderActiveFormFields() {
+            const container = document.getElementById('dynamic-entry-form');
+            container.innerHTML = '';
+            const permitted = getPermittedFormsForRole(activeUserRole);
+            const form = permitted.find(f => f.id === activeFormId);
+            if(!form) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs">You do not have access to view or submit this form.</div>`;
+                return;
+            }
+
+            form.fields.forEach(field => {
+                if(field.hidden) return;
+                const div = document.createElement('div');
+                div.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2 shadow-sm';
+                let labelHTML = `<label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">${field.label} ${field.required ? '<span class="text-blue-400">*</span>' : ''}</label>`;
+                let inputHTML = '';
+
+                switch(field.type) {
+                    case 'barcode':
+                    case 'ocr':
+                        inputHTML = `
+                            <div class="flex gap-2">
+                                <input type="text" id="field_${field.id}" name="${field.label}" ${field.required ? 'required' : ''} oninput="triggerFieldCalculations()" placeholder="Scan barcode/QR or type..." class="flex-1 bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <button type="button" onclick="openScannerModal('${field.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                                    <i class="fa-solid fa-camera"></i> Scan
+                                </button>
+                            </div>`;
+                        break;
+                    case 'location':
+                        inputHTML = `
+                            <div class="space-y-2">
+                                <div class="flex gap-2">
+                                    <input type="text" id="field_${field.id}" name="${field.label}" ${field.required ? 'required' : ''} placeholder="Google Coordinates (lat, lng)..." readonly class="flex-1 bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                    <button type="button" onclick="fetchCurrentLocation('${field.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-md">
+                                        <i class="fa-solid fa-location-crosshairs"></i> Get GPS
+                                    </button>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <a id="map_link_${field.id}" href="#" target="_blank" class="text-blue-400 hover:underline hidden flex items-center gap-1"><i class="fa-solid fa-map-location-dot"></i> View on Google Maps</a>
+                                </div>
+                                <iframe id="map_preview_${field.id}" class="w-full h-32 rounded-xl border border-slate-800 hidden" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
+                            </div>`;
+                        break;
+                    case 'picture':
+                        inputHTML = `
+                            <div class="space-y-3">
+                                <input type="hidden" id="field_${field.id}" name="${field.label}" ${field.required ? 'required' : ''}>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex-1 bg-slate-800 hover:bg-slate-700 text-blue-300 border border-slate-700 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition shadow-md">
+                                        <i class="fa-solid fa-camera-retro text-base"></i> Take Camera Photo / Browse Files
+                                        <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePictureFileSelect(event, '${field.id}')">
+                                    </label>
+                                </div>
+                                <div id="preview_container_${field.id}" class="hidden relative w-32 h-32 rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
+                                    <img id="preview_img_${field.id}" class="w-full h-full object-cover" alt="Captured Photo Preview">
+                                </div>
+                            </div>`;
+                        break;
+                    case 'dropdown':
+                        let opts = (field.options || []).map(o => `<option value="${o}">${o}</option>`).join('');
+                        inputHTML = `<select id="field_${field.id}" onchange="triggerFieldCalculations()" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5"><option value="">Select option...</option>${opts}</select>`;
+                        break;
+                    case 'date':
+                        inputHTML = `<input type="date" id="field_${field.id}" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono">`;
+                        break;
+                    case 'time':
+                        inputHTML = `<input type="time" id="field_${field.id}" value="${getCurrentTimeString()}" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono">`;
+                        break;
+                    case 'timestamp':
+                        inputHTML = `<input type="text" id="field_${field.id}" value="${getLocalTimestamp()}" readonly class="w-full bg-slate-950/60 border border-slate-800 text-slate-400 text-sm rounded-xl px-3.5 py-2.5 font-mono">`;
+                        break;
+                    case 'numbers':
+                        inputHTML = `<input type="number" id="field_${field.id}" oninput="triggerFieldCalculations()" placeholder="0.00" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono">`;
+                        break;
+                    case 'computation':
+                        inputHTML = `
+                            <div class="relative">
+                                <input type="text" id="field_${field.id}" data-formula="${field.formula || ''}" readonly placeholder="Auto-calculated..." class="w-full bg-slate-950/80 border border-blue-500/50 text-emerald-400 font-bold text-sm rounded-xl px-3.5 py-2.5 font-mono">
+                                <span class="absolute right-3 top-2.5 text-[10px] text-blue-400 uppercase tracking-widest font-bold">Formula: ${field.formula || 'N/A'}</span>
+                            </div>`;
+                        break;
+                    default:
+                        inputHTML = `<input type="text" id="field_${field.id}" oninput="triggerFieldCalculations()" placeholder="Enter value..." class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5">`;
+                }
+                div.innerHTML = labelHTML + inputHTML;
+                container.appendChild(div);
+            });
+            triggerFieldCalculations();
+        }
+
+        function triggerFieldCalculations() {
+            const permitted = getPermittedFormsForRole(activeUserRole);
+            const form = permitted.find(f => f.id === activeFormId);
+            if(!form) return;
+
+            form.fields.forEach(field => {
+                if(field.type === 'computation' && field.formula) {
+                    const outputEl = document.getElementById(`field_${field.id}`);
+                    if(!outputEl) return;
+                    try {
+                        let evalString = field.formula;
+                        const variableRegex = /\b[a-zA-Z0-9_]+\b/g;
+                        const matches = evalString.match(variableRegex) || [];
+
+                        matches.forEach(varName => {
+                            if (varName !== 'Math' && varName !== 'Number' && varName !== 'parseFloat' && varName !== 'parseInt') {
+                                const refInput = document.getElementById(`field_${varName}`);
+                                const val = refInput && refInput.value ? parseFloat(refInput.value) || 0 : 0;
+                                evalString = evalString.replace(new RegExp(`\\b${varName}\\b`, 'g'), val);
+                            }
+                        });
+
+                        const computedVal = Function(`"use strict"; return (${evalString});`)();
+                        outputEl.value = isNaN(computedVal) ? '0.00' : Number(computedVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    } catch(err) {
+                        outputEl.value = 'Formula Error';
+                    }
+                }
+            });
+        }
+
+        function resetCurrentFormInputs() { renderActiveFormFields(); showToast('Cleared', 'info'); }
+
+        function handleFormSubmit(e) {
+            if(e) e.preventDefault();
+            const permitted = getPermittedFormsForRole(activeUserRole);
+            const form = permitted.find(f => f.id === activeFormId);
+            if(!form) { showToast('Unauthorized form submission', 'error'); return; }
+
+            let recordData = {};
+            let isValid = true;
+
+            form.fields.forEach(field => {
+                if(field.hidden) return;
+                const el = document.getElementById(`field_${field.id}`);
+                if(el) {
+                    recordData[field.label] = el.value;
+                    if(field.required && !el.value) isValid = false;
+                }
+            });
+
+            if(!isValid) { showToast('Fill all required fields!', 'error'); return; }
+
+            const ticketId = 'TKT-2026-' + String(Math.floor(1000 + Math.random() * 9000));
+            const newLog = {
+                id: ticketId,
+                timestamp: getLocalTimestamp(),
+                user: activeUser || 'system',
+                formName: form.name,
+                formId: form.id,
+                data: recordData,
+                status: 'VALID'
+            };
+
+            logs.unshift(newLog);
+            localStorage.setItem('ullswater_logs', JSON.stringify(logs));
+            renderLedgerTable();
+            updateSidebarStats();
+            showToast(`Ticket ${ticketId} generated! Sending to sheet...`, 'success');
+            
+            postLogToGoogleSheet(newLog);
+            renderActiveFormFields();
+            openTicketModal(ticketId);
+        }
+
+        function postLogToGoogleSheet(logEntry) {
+            const settings = JSON.parse(localStorage.getItem('ullswater_connection_settings')) || {};
+            const webappUrl = settings.webappId;
+
+            if(webappUrl && webappUrl.startsWith('http')) {
+                fetch(webappUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(logEntry)
+                }).then(() => {}).catch(err => {});
+            }
+        }
+
+        function syncToCloudEndpoint() {
+            const settings = JSON.parse(localStorage.getItem('ullswater_connection_settings')) || {};
+            const webappUrl = settings.webappId;
+
+            if(!webappUrl || !webappUrl.startsWith('http')) {
+                showToast('Please enter your Google Apps Script Web App URL in Connection settings.', 'error');
+                return;
+            }
+
+            showToast(`Syncing ${logs.length} entries to dedicated form sheet tabs...`, 'info');
+            Promise.all(logs.map(log => {
+                return fetch(webappUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(log)
+                });
+            })).then(() => {
+                showToast('All form records synced to their dedicated sheet tabs!', 'success');
+            }).catch(err => {
+                showToast('Sync error: ' + err.message, 'error');
+            });
+        }
+
+        function renderLedgerTable() {
+            const tbody = document.getElementById('ledger-table-body');
+            tbody.innerHTML = logs.length === 0 ? `<tr><td colspan="7" class="text-center py-8 text-slate-500">No ledger tickets yet.</td></tr>` : '';
+            
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50 border-b border-slate-800/60';
+                const summary = Object.entries(log.data).map(([k, v]) => {
+                    const isImg = typeof v === 'string' && v.startsWith('data:image');
+                    const valDisplay = isImg ? '[Attached Image]' : v;
+                    return `<span class="text-slate-400">${k}:</span> <span class="text-white">${valDisplay}</span>`;
+                }).join(' | ');
+
+                const statusBadge = log.status === 'VALID' 
+                    ? '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-semibold">VALID</span>'
+                    : '<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full text-[10px] font-semibold">VOIDED</span>';
+
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold text-blue-400"><button onclick="openTicketModal('${log.id}')" class="hover:underline">${log.id}</button></td>
+                    <td class="p-3.5 text-slate-400">${log.timestamp}</td>
+                    <td class="p-3.5 text-slate-200">@${log.user}</td>
+                    <td class="p-3.5 text-blue-300 font-semibold">${log.formName}</td>
+                    <td class="p-3.5 text-slate-300 truncate max-w-xs">${summary}</td>
+                    <td class="p-3.5">${statusBadge}</td>
+                    <td class="p-3.5 text-right space-x-1">
+                        <button onclick="openTicketModal('${log.id}')" class="bg-slate-800 hover:bg-slate-700 text-blue-300 px-2 py-1 rounded text-xs" title="Print/View Ticket"><i class="fa-solid fa-ticket"></i></button>
+                        ${log.status === 'VALID' ? `<button onclick="openEditModal('${log.id}')" class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-2 py-1 rounded text-xs" title="Edit Entry"><i class="fa-solid fa-pen"></i></button>` : ''}
+                        ${log.status === 'VALID' ? `<button onclick="voidTicket('${log.id}')" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2 py-1 rounded text-xs" title="Void Ticket"><i class="fa-solid fa-ban"></i></button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openTicketModal(ticketId) {
+            const log = logs.find(l => l.id === ticketId);
+            if(!log) return;
+            document.getElementById('ticket-id-display').innerText = log.id;
+            document.getElementById('ticket-timestamp-display').innerText = log.timestamp;
+            document.getElementById('ticket-operator-display').innerText = '@' + log.user;
+            document.getElementById('ticket-formname-display').innerText = log.formName;
+            document.getElementById('ticket-status-display').innerText = log.status;
+            document.getElementById('ticket-status-display').className = log.status === 'VALID' ? 'font-bold text-emerald-600' : 'font-bold text-rose-600';
+
+            const tbody = document.getElementById('ticket-payload-table');
+            tbody.innerHTML = '';
+            Object.entries(log.data).forEach(([k, v]) => {
+                let valHTML = v;
+                const isImg = typeof v === 'string' && v.startsWith('data:image');
+                if(isImg) {
+                    valHTML = `<img src="${v}" class="max-h-24 rounded border border-slate-300 my-1">`;
+                }
+                tbody.innerHTML += `<tr><td class="p-2.5 font-bold text-slate-700">${k}</td><td class="p-2.5 text-slate-900">${valHTML}</td></tr>`;
+            });
+
+            document.getElementById('ticket-barcode-text').innerText = log.id;
+            JsBarcode("#ticket-barcode-svg", log.id, { format: "CODE128", width: 1.5, height: 40, displayValue: false });
+            document.getElementById('ticket-modal').classList.remove('hidden');
+        }
+
+        function closeTicketModal() { document.getElementById('ticket-modal').classList.add('hidden'); }
+        function printCurrentTicket() { window.print(); }
+
+        function voidTicket(ticketId) {
+            if(confirm(`Void ticket ${ticketId}?`)) {
+                const log = logs.find(l => l.id === ticketId);
+                if(log) {
+                    log.status = 'VOIDED';
+                    localStorage.setItem('ullswater_logs', JSON.stringify(logs));
+                    renderLedgerTable();
+                    showToast('Ticket voided.', 'info');
+                }
+            }
+        }
+
+        function openEditModal(ticketId) {
+            currentEditingTicketId = ticketId;
+            const log = logs.find(l => l.id === ticketId);
+            if(!log) return;
+            const container = document.getElementById('edit-modal-fields-container');
+            container.innerHTML = '';
+            Object.entries(log.data).forEach(([k, v]) => {
+                container.innerHTML += `
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 uppercase mb-1">${k}</label>
+                        <input type="text" id="edit_field_${k}" value="${v}" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-3.5 py-2.5 font-mono">
+                    </div>`;
+            });
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+        function saveEditedLedgerEntry() {
+            const log = logs.find(l => l.id === currentEditingTicketId);
+            if(!log) return;
+            Object.keys(log.data).forEach(k => {
+                const el = document.getElementById(`edit_field_${k}`);
+                if(el) log.data[k] = el.value;
+            });
+            localStorage.setItem('ullswater_logs', JSON.stringify(logs));
+            renderLedgerTable();
+            closeEditModal();
+            showToast('Ticket updated!', 'success');
+        }
+
+        function renderDesignerFormList() {
+            const list = document.getElementById('designer-form-list');
+            list.innerHTML = '';
+            forms.forEach(f => {
+                const isActive = f.id === selectedDesignFormId;
+                list.innerHTML += `
+                    <div onclick="selectFormForDesign('${f.id}')" class="p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${isActive ? 'bg-blue-600/20 border-blue-500 text-white font-semibold' : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800 text-xs'}">
+                        <span><i class="fa-solid ${f.icon || 'fa-file-lines'} mr-2 text-blue-400"></i>${f.name}</span>
+                        <button onclick="event.stopPropagation(); deleteForm('${f.id}')" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash-can text-[11px]"></i></button>
+                    </div>`;
+            });
+        }
+
+        function selectFormForDesign(formId) {
+            selectedDesignFormId = formId;
+            renderDesignerFormList();
+            renderFormEditorWorkspace();
+        }
+
+        function renderFormEditorWorkspace() {
+            const container = document.getElementById('form-editor-workspace');
+            const form = forms.find(f => f.id === selectedDesignFormId);
+            if(!form) return;
+            if(!form.allowedRoles) form.allowedRoles = ['Administrator', 'Data Entry Operator', 'Auditor'];
+
+            const allRoles = ['Administrator', 'Data Entry Operator', 'Auditor'];
+            let roleCheckboxesHTML = allRoles.map(role => {
+                const isChecked = form.allowedRoles.includes(role);
+                return `
+                    <label class="flex items-center space-x-1.5 text-xs text-slate-300 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg cursor-pointer">
+                        <input type="checkbox" value="${role}" ${isChecked ? 'checked' : ''} onchange="updateFormRolePermission('${form.id}', '${role}', this.checked)" class="rounded bg-slate-950 border-slate-700 text-blue-500">
+                        <span>${role}</span>
+                    </label>`;
+            }).join('');
+
+            let fieldsHTML = '';
+            form.fields.forEach((field, index) => {
+                if(field.hidden === undefined) field.hidden = false;
+                let extraConfigHTML = '';
+                if(field.type === 'dropdown') {
+                    extraConfigHTML = `<button type="button" onclick="openDropdownManager('${form.id}', '${field.id}')" class="bg-blue-600/20 text-blue-300 border border-blue-500/40 px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-list"></i> Edit Dropdown Options (${(field.options || []).length})</button>`;
+                } else if(field.type === 'computation') {
+                    extraConfigHTML = `<div class="flex items-center gap-2 pt-1"><span class="text-[11px] font-bold text-emerald-400 uppercase">Formula:</span><input type="text" value="${field.formula || ''}" onchange="updateFieldFormula('${form.id}', '${field.id}', this.value)" class="flex-1 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded-lg px-3 py-1.5"></div>`;
+                }
+
+                fieldsHTML += `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center space-x-2 flex-1">
+                                <span class="bg-slate-800 text-slate-400 text-xs font-mono px-2 py-1 rounded">#${index + 1}</span>
+                                <input type="text" value="${field.label}" onchange="updateFieldProperty('${form.id}', '${field.id}', 'label', this.value)" class="bg-slate-900 border border-slate-700 text-white text-sm font-semibold rounded-xl px-3 py-1.5 flex-1">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <select onchange="updateFieldProperty('${form.id}', '${field.id}', 'type', this.value)" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-xl px-3 py-1.5">
+                                    <option value="text" ${field.type==='text'?'selected':''}>Text Input</option>
+                                    <option value="barcode" ${field.type==='barcode'?'selected':''}>Barcode / Scanner</option>
+                                    <option value="location" ${field.type==='location'?'selected':''}>GPS Map</option>
+                                    <option value="picture" ${field.type==='picture'?'selected':''}>Picture</option>
+                                    <option value="dropdown" ${field.type==='dropdown'?'selected':''}>Dropdown</option>
+                                    <option value="numbers" ${field.type==='numbers'?'selected':''}>Numeric</option>
+                                    <option value="computation" ${field.type==='computation'?'selected':''}>Computation</option>
+                                    <option value="date" ${field.type==='date'?'selected':''}>Date</option>
+                                    <option value="time" ${field.type==='time'?'selected':''}>Time</option>
+                                    <option value="timestamp" ${field.type==='timestamp'?'selected':''}>Timestamp</option>
+                                    <option value="ocr" ${field.type==='ocr'?'selected':''}>OCR Scanner</option>
+                                </select>
+                                <button onclick="removeFieldFromForm('${form.id}', '${field.id}')" class="text-rose-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                        ${extraConfigHTML}
+                    </div>`;
+            });
+
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <input type="text" value="${form.name}" onchange="updateFormName('${form.id}', this.value)" class="bg-transparent text-white font-bold text-lg focus:outline-none">
+                        <button onclick="addFieldToForm('${form.id}')" class="bg-blue-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl"><i class="fa-solid fa-plus"></i> Add Field</button>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2">
+                        <label class="block text-xs font-bold text-slate-300 uppercase"><i class="fa-solid fa-user-shield text-blue-400"></i> Allowed Roles</label>
+                        <div class="flex flex-wrap gap-2 pt-1">${roleCheckboxesHTML}</div>
+                    </div>
+                    <div class="space-y-3 max-h-[40vh] overflow-y-auto">${fieldsHTML}</div>
+                </div>`;
+        }
+
+        function updateFormRolePermission(formId, role, isChecked) {
+            const form = forms.find(f => f.id === formId);
+            if(!form.allowedRoles) form.allowedRoles = [];
+            if(isChecked) { if(!form.allowedRoles.includes(role)) form.allowedRoles.push(role); }
+            else { form.allowedRoles = form.allowedRoles.filter(r => r !== role); }
+            saveAllFormDesigns();
+        }
+
+        function updateFormName(formId, newName) {
+            const form = forms.find(f => f.id === formId);
+            if(form) { form.name = newName; renderDesignerFormList(); renderFormSelector(); }
+        }
+
+        function updateFieldProperty(formId, fieldId, prop, val) {
+            const form = forms.find(f => f.id === formId);
+            const field = form.fields.find(f => f.id === fieldId);
+            if(field) { field[prop] = val; renderFormEditorWorkspace(); }
+        }
+
+        function updateFieldFormula(formId, fieldId, formulaVal) {
+            const form = forms.find(f => f.id === formId);
+            const field = form.fields.find(f => f.id === fieldId);
+            if(field) { field.formula = formulaVal.trim(); saveAllFormDesigns(); }
+        }
+
+        function addFieldToForm(formId) {
+            const form = forms.find(f => f.id === formId);
+            form.fields.push({ id: 'f_' + Math.random().toString(36).substring(2, 7), label: 'New Field', type: 'text', required: false, hidden: false });
+            renderFormEditorWorkspace();
+        }
+
+        function removeFieldFromForm(formId, fieldId) {
+            const form = forms.find(f => f.id === formId);
+            form.fields = form.fields.filter(f => f.id !== fieldId);
+            renderFormEditorWorkspace();
+        }
+
+        function openNewFormModal() {
+            const newFormId = 'form_' + Date.now();
+            forms.push({ id: newFormId, name: 'New Form', icon: 'fa-file-lines', allowedRoles: ['Administrator'], fields: [{ id: 'f8', label: 'Item', type: 'text', required: true }] });
+            selectedDesignFormId = newFormId;
+            renderDesignerFormList();
+            renderFormEditorWorkspace();
+            renderFormSelector();
+        }
+
+        function deleteForm(formId) {
+            if(forms.length <= 1) return showToast('Cannot delete last form', 'error');
+            if(confirm('Delete form?')) {
+                forms = forms.filter(f => f.id !== formId);
+                selectedDesignFormId = forms[0].id;
+                activeFormId = forms[0].id;
+                renderDesignerFormList();
+                renderFormEditorWorkspace();
+                renderFormSelector();
+                renderActiveFormFields();
+            }
+        }
+
+        function saveAllFormDesigns() {
+            localStorage.setItem('ullswater_forms', JSON.stringify(forms));
+            renderFormSelector();
+            renderActiveFormFields();
+            showToast('Form designs saved!', 'success');
+        }
+
+        function openDropdownManager(formId, fieldId) {
+            activeDropdownEditingField = { formId, fieldId };
+            renderDropdownOptionsList();
+            document.getElementById('dropdown-options-modal').classList.remove('hidden');
+        }
+
+        function closeDropdownOptionsModal() {
+            document.getElementById('dropdown-options-modal').classList.add('hidden');
+            saveAllFormDesigns();
+            renderFormEditorWorkspace();
+        }
+
+        function renderDropdownOptionsList() {
+            const container = document.getElementById('modal-dropdown-items-container');
+            const form = forms.find(f => f.id === activeDropdownEditingField.formId);
+            const field = form.fields.find(f => f.id === activeDropdownEditingField.fieldId);
+            container.innerHTML = '';
+            (field.options || []).forEach((opt, idx) => {
+                container.innerHTML += `<div class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs"><span class="text-white">${opt}</span><button onclick="removeDropdownOptionItem(${idx})" class="text-rose-400"><i class="fa-solid fa-trash-can"></i></button></div>`;
+            });
+        }
+
+        function addDropdownOptionItem() {
+            const input = document.getElementById('new-dropdown-item-input');
+            const val = input.value.trim();
+            if(!val) return;
+            const form = forms.find(f => f.id === activeDropdownEditingField.formId);
+            const field = form.fields.find(f => f.id === activeDropdownEditingField.fieldId);
+            field.options.push(val);
+            input.value = '';
+            renderDropdownOptionsList();
+        }
+
+        function removeDropdownOptionItem(idx) {
+            const form = forms.find(f => f.id === activeDropdownEditingField.formId);
+            const field = form.fields.find(f => f.id === activeDropdownEditingField.fieldId);
+            field.options.splice(idx, 1);
+            renderDropdownOptionsList();
+        }
+
+        function setConnectionType(type) {
+            const btnToken = document.getElementById('conn-btn-token');
+            const btnSheets = document.getElementById('conn-btn-sheets');
+            const panelToken = document.getElementById('conn-panel-token');
+            const panelSheets = document.getElementById('conn-panel-sheets');
+
+            if(type === 'token') {
+                btnToken.className = "p-4 rounded-xl border text-left transition flex flex-col gap-1 bg-blue-600/20 border-blue-500 text-white";
+                btnSheets.className = "p-4 rounded-xl border text-left transition flex flex-col gap-1 bg-slate-950 border-slate-800 text-slate-400";
+                panelToken.classList.remove('hidden');
+                panelSheets.classList.add('hidden');
+            } else {
+                btnSheets.className = "p-4 rounded-xl border text-left transition flex flex-col gap-1 bg-blue-600/20 border-blue-500 text-white";
+                btnToken.className = "p-4 rounded-xl border text-left transition flex flex-col gap-1 bg-slate-950 border-slate-800 text-slate-400";
+                panelSheets.classList.remove('hidden');
+                panelToken.classList.add('hidden');
+            }
+            localStorage.setItem('ullswater_conn_type', type);
+        }
+
+        function saveConnectionSettings() {
+            const token = document.getElementById('setting-token').value;
+            const webappId = document.getElementById('setting-webapp-id').value;
+            const sheetUrl = document.getElementById('setting-sheet-url').value;
+            const connType = localStorage.getItem('ullswater_conn_type') || 'token';
+            localStorage.setItem('ullswater_connection_settings', JSON.stringify({ connType, token, webappId, sheetUrl }));
+            showToast('Connection saved!', 'success');
+        }
+
+        function loadSettingsToUI() {
+            const saved = JSON.parse(localStorage.getItem('ullswater_connection_settings'));
+            if(saved) {
+                if(saved.token) document.getElementById('setting-token').value = saved.token;
+                if(saved.webappId) document.getElementById('setting-webapp-id').value = saved.webappId;
+                if(saved.sheetUrl) document.getElementById('setting-sheet-url').value = saved.sheetUrl;
+                if(saved.connType) setConnectionType(saved.connType);
+            }
+        }
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                const permittedFormsList = getPermittedFormsForRole(u.role).map(f => f.name).join(', ') || 'None';
+                tbody.innerHTML += `<tr class="border-b border-slate-800"><td class="p-3.5 font-bold text-white">@${u.username}</td><td class="p-3.5 text-slate-300">${u.fullname} <br><span class="text-[10px] text-blue-400 font-mono">${u.role}</span></td><td class="p-3.5 text-slate-300">${permittedFormsList}</td><td class="p-3.5 text-right"><button onclick="deleteUser('${u.username}')" class="text-rose-400"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+            });
+        }
+
+        function openAddUserModal() { document.getElementById('user-modal').classList.remove('hidden'); }
+        function closeUserModal() { document.getElementById('user-modal').classList.add('hidden'); }
+        
+        function saveUserAccount() {
+            const username = document.getElementById('modal-username').value.trim();
+            const fullname = document.getElementById('modal-fullname').value.trim();
+            const pass = document.getElementById('modal-password').value;
+            const role = document.getElementById('modal-role').value;
+            if(!username || !fullname || !pass) return showToast('Fill all fields', 'error');
+            users.push({ username, fullname, role, pass });
+            localStorage.setItem('ullswater_users', JSON.stringify(users));
+            renderUsersTable(); renderMessengerUsersList(); closeUserModal();
+            showToast('User added', 'success');
+        }
+
+        function deleteUser(u) {
+            if(users.length <= 1) return showToast('Cannot delete last user', 'error');
+            users = users.filter(x => x.username !== u);
+            localStorage.setItem('ullswater_users', JSON.stringify(users));
+            renderUsersTable(); renderMessengerUsersList();
+        }
+
+        function exportSystemDatabaseJSON() {
+            const blob = new Blob([JSON.stringify({ users, forms, logs, chatMessages }, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'Ullswater_Backup.json'; a.click();
+            showToast('Database exported', 'success');
+        }
+
+        function importSystemDatabaseJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const db = JSON.parse(e.target.result);
+                    if(db.users) users = db.users;
+                    if(db.forms) forms = db.forms;
+                    if(db.logs) logs = db.logs;
+                    localStorage.setItem('ullswater_users', JSON.stringify(users));
+                    localStorage.setItem('ullswater_forms', JSON.stringify(forms));
+                    localStorage.setItem('ullswater_logs', JSON.stringify(logs));
+                    location.reload();
+                } catch(err) { showToast('Invalid JSON', 'error'); }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearSystemDatabase() {
+            if (confirm("Wipe all data?")) { localStorage.clear(); location.reload(); }
+        }
+
+        function exportLogsCSV() {
+            let csv = 'Ticket ID,Timestamp,Operator,Form Name,Status,Data\n';
+            logs.forEach(l => csv += `"${l.id}","${l.timestamp}","${l.user}","${l.formName}","${l.status}","${JSON.stringify(l.data).replace(/"/g, '""')}"\n`);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'Ullswater_Ledger.csv'; a.click();
+        }
+
+        function importLogsCSV(event) {}
+
+        function wipeAllData() { 
+            if (confirm("Clear logs?")) { logs = []; localStorage.removeItem('ullswater_logs'); renderLedgerTable(); updateSidebarStats(); }
+        }
+
+        function updateSidebarStats() { document.getElementById('sidebar-queue').innerText = logs.length + ' Tickets'; }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `border px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 text-xs font-medium ${type === 'success' ? 'bg-emerald-950 border-emerald-800 text-emerald-200' : 'bg-rose-950 border-rose-800 text-rose-200'}`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
