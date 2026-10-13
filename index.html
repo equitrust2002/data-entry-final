@@ -1584,6 +1584,12 @@
                                 <button onclick="removeFieldFromForm('${form.id}', '${field.id}')" class="text-rose-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-900">
+                            <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+                                <input type="checkbox" ${field.hidden ? 'checked' : ''} onchange="updateFieldProperty('${form.id}', '${field.id}', 'hidden', this.checked)" class="rounded bg-slate-900 border-slate-700 text-blue-500">
+                                <span>Tick if Hidden (Hide this field on data entry form)</span>
+                            </label>
+                        </div>
                         ${extraConfigHTML}
                     </div>`;
             });
@@ -1618,7 +1624,11 @@
         function updateFieldProperty(formId, fieldId, prop, val) {
             const form = forms.find(f => f.id === formId);
             const field = form.fields.find(f => f.id === fieldId);
-            if(field) { field[prop] = val; renderFormEditorWorkspace(); }
+            if(field) { 
+                field[prop] = val; 
+                renderFormEditorWorkspace(); 
+                saveAllFormDesigns();
+            }
         }
 
         function updateFieldFormula(formId, fieldId, formulaVal) {
@@ -1641,7 +1651,7 @@
 
         function openNewFormModal() {
             const newFormId = 'form_' + Date.now();
-            forms.push({ id: newFormId, name: 'New Form', icon: 'fa-file-lines', allowedRoles: ['Administrator'], fields: [{ id: 'f8', label: 'Item', type: 'text', required: true }] });
+            forms.push({ id: newFormId, name: 'New Form', icon: 'fa-file-lines', allowedRoles: ['Administrator'], fields: [{ id: 'f8', label: 'Item', type: 'text', required: true, hidden: false }] });
             selectedDesignFormId = newFormId;
             renderDesignerFormList();
             renderFormEditorWorkspace();
