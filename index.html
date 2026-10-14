@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ullswater Corporation - Fleet Ledger, Form Designer & Live Google Sheet Mirror</title>
+    <title>Ullswater Corporation - Fleet Ledger, SatNav Playback & Google Sheet Mirror</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -55,8 +55,9 @@
                     Sign In to Terminal
                 </button>
             </form>
-            <div class="text-center text-[11px] text-slate-500">
-                Default Admin: <span class="font-mono text-slate-400">admin</span> / <span class="font-mono text-slate-400">admin123</span>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-800">
+                <span>Default: <span class="font-mono text-slate-400">admin</span> / <span class="font-mono text-slate-400">admin123</span></span>
+                <button type="button" onclick="fillAdminCredentials()" class="text-blue-400 hover:underline font-semibold">Auto-fill Admin</button>
             </div>
         </div>
     </div>
@@ -88,8 +89,8 @@
                     <span class="hidden md:inline">Ledger & Tickets</span>
                 </button>
                 <button onclick="switchTab('gps')" id="nav-gps" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
-                    <i class="fa-solid fa-location-crosshairs w-5 text-center text-base"></i>
-                    <span class="hidden md:inline">GPS Ping & Geofence</span>
+                    <i class="fa-solid fa-satellite-dish w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">SatNav & Playback</span>
                 </button>
                 <button onclick="switchTab('transmissions')" id="nav-transmissions" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
                     <i class="fa-solid fa-user-check w-5 text-center text-base"></i>
@@ -230,67 +231,107 @@
                 </div>
             </div>
 
-            <!-- TAB 3: SEPARATED GPS PING & GEOFENCE / PLAYBACK -->
+            <!-- TAB 3: SATNAV SATELLITE NAVIGATION & PLAYBACK -->
             <div id="tab-gps" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
                 <div class="max-w-6xl w-full mx-auto space-y-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
                         <div>
                             <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-location-crosshairs text-emerald-400"></i> GPS Tracking, Geofence & Playback
+                                <i class="fa-solid fa-satellite-dish text-cyan-400"></i> SatNav Navigation & Point-by-Point Playback
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Configure geofencing parameters, monitor boundary breaches, and playback past route history.</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Live satellite tracking, point-by-point route history animation, and geofence monitoring.</p>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="startPlaybackSimulation()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-md">
-                                <i class="fa-solid fa-play mr-1"></i> Playback Route History
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="startSatNavPlayback()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
+                                <i class="fa-solid fa-play"></i> Playback SatNav Route
                             </button>
-                            <button onclick="clearGpsLogs()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-md">
-                                <i class="fa-solid fa-trash-can mr-1"></i> Clear Logs
+                            <button onclick="stopSatNavPlayback()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition">
+                                Pause
+                            </button>
+                            <button onclick="clearGpsLogs()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition">
+                                Clear History
                             </button>
                         </div>
                     </div>
 
-                    <!-- GEOFENCE CONFIG PANEL -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
-                        <div class="space-y-2">
-                            <label class="block text-xs font-bold text-slate-300 uppercase">Geofence Reference Center</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="geofence-center-input" readonly placeholder="Set current position as center..." class="w-full bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 font-mono">
-                                <button onclick="setGeofenceCenterToCurrent()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shrink-0">Set Center</button>
+                    <!-- SATNAV HUD & LIVE MAP PREVIEW -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col space-y-4 shadow-xl">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
+                                    <h4 class="font-bold text-sm text-white uppercase tracking-wider">SatNav Active Display</h4>
+                                </div>
+                                <span id="satnav-step-badge" class="font-mono text-xs text-cyan-300 bg-cyan-950 px-3 py-1 rounded-full border border-cyan-800">Standby / Ready</span>
+                            </div>
+                            
+                            <!-- Embedded Map Viewport -->
+                            <div class="relative w-full h-72 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+                                <iframe id="satnav-map-frame" class="w-full h-full border-0 filter invert-[90%] hue-rotate-180 contrast-125" src="about:blank"></iframe>
+                                <div id="satnav-overlay-banner" class="absolute top-3 left-3 bg-slate-950/90 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-xl text-xs font-mono shadow-lg flex items-center gap-2">
+                                    <i class="fa-solid fa-location-crosshairs text-cyan-400"></i>
+                                    <span id="satnav-current-coords">Awaiting coordinates telemetry...</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3 text-center">
+                                <div class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl">
+                                    <span class="text-[10px] text-slate-500 uppercase block font-semibold">Playback Status</span>
+                                    <span id="satnav-hud-status" class="font-mono text-xs text-emerald-400 font-bold">Idle</span>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl">
+                                    <span class="text-[10px] text-slate-500 uppercase block font-semibold">Distance from Center</span>
+                                    <span id="satnav-hud-distance" class="font-mono text-xs text-cyan-300 font-bold">0m</span>
+                                </div>
+                                <div class="bg-slate-950 border border-slate-800 p-2.5 rounded-xl">
+                                    <span class="text-[10px] text-slate-500 uppercase block font-semibold">GPS Accuracy</span>
+                                    <span id="satnav-hud-accuracy" class="font-mono text-xs text-amber-300 font-bold">±5.0m</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="space-y-2">
-                            <label class="block text-xs font-bold text-slate-300 uppercase">Perimeter Radius: <span id="radius-val-display" class="text-emerald-400 font-mono">100</span> Meters</label>
-                            <input type="range" id="geofence-radius-slider" min="10" max="2000" step="10" value="100" oninput="updateGeofenceRadius(this.value)" class="w-full accent-blue-500 mt-3">
-                        </div>
-                        <div class="space-y-2 flex flex-col justify-end">
-                            <div id="geofence-status-banner" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between">
-                                <span>Status: Inside Boundary</span>
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+
+                        <!-- GEOFENCE & SETTINGS PANEL -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-xl flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <h4 class="font-bold text-sm text-white uppercase tracking-wider border-b border-slate-800 pb-2">Geofence Perimeter</h4>
+                                
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold text-slate-300 uppercase">Reference Center</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="geofence-center-input" readonly placeholder="Center not set..." class="w-full bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 font-mono">
+                                        <button onclick="setGeofenceCenterToCurrent()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shrink-0">Set Center</button>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold text-slate-300 uppercase">Radius: <span id="radius-val-display" class="text-emerald-400 font-mono">100</span> Meters</label>
+                                    <input type="range" id="geofence-radius-slider" min="10" max="2000" step="10" value="100" oninput="updateGeofenceRadius(this.value)" class="w-full accent-cyan-500 mt-2">
+                                </div>
+
+                                <div id="geofence-status-banner" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-between">
+                                    <span>Status: Inside Boundary</span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-[11px] text-slate-400 space-y-1">
+                                <div class="font-bold text-white"><i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> SatNav Guide</div>
+                                <div>SatNav records point-by-point coordinates automatically via Auto GPS or manual entry. Click play to watch historical routing.</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- PLAYBACK CONTROLS (HIDDEN UNTIL PLAYED) -->
-                    <div id="playback-control-panel" class="hidden bg-slate-900 border border-blue-500/40 rounded-2xl p-4 flex items-center justify-between gap-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="bg-blue-500/20 p-2.5 rounded-xl text-blue-400">
-                                <i class="fa-solid fa-route"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-bold text-white uppercase">Route History Playback</h4>
-                                <p id="playback-status-text" class="text-[11px] text-slate-400 font-mono">Step 0 of 0</p>
-                            </div>
-                        </div>
-                        <button onclick="stopPlaybackSimulation()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-3 py-1.5 rounded-xl">Stop Playback</button>
-                    </div>
-
+                    <!-- GPS LOGS TABLE -->
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                            <h4 class="font-bold text-sm text-white">Route History Telemetry Log</h4>
+                            <span id="gps-total-count" class="text-xs text-slate-400 font-mono">0 Points Recorded</span>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs text-slate-300">
                                 <thead class="bg-slate-800/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-700/80">
                                     <tr>
-                                        <th class="p-3.5">Ping ID</th>
+                                        <th class="p-3.5">Point ID</th>
                                         <th class="p-3.5">Timestamp</th>
                                         <th class="p-3.5">Operator</th>
                                         <th class="p-3.5">Coordinates (Lat, Lng)</th>
@@ -784,10 +825,14 @@
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
     <script>
-        let users = JSON.parse(localStorage.getItem('ullswater_users')) || [
+        let storedUsers = null;
+        try { storedUsers = JSON.parse(localStorage.getItem('ullswater_users')); } catch(e) { storedUsers = null; }
+
+        let users = storedUsers || [
             { username: 'admin', fullname: 'Jose Mari Borja (Director)', role: 'Administrator', pass: 'admin123' },
             { username: 'operator1', fullname: 'Meredy Panti (Manager)', role: 'Data Entry Operator', pass: 'operator123' }
         ];
+
         let activeUser = localStorage.getItem('ullswater_active_user') || null;
         let activeUserRole = localStorage.getItem('ullswater_active_role') || null;
 
@@ -850,7 +895,7 @@
 
         let autoGpsTimer = null;
         let autoGpsEnabled = localStorage.getItem('ullswater_auto_gps') === 'true';
-        let playbackTimer = null;
+        let satNavPlaybackTimer = null;
 
         window.onload = function() {
             checkAuthSession();
@@ -903,12 +948,17 @@
             }
         }
 
+        function fillAdminCredentials() {
+            document.getElementById('login-username').value = 'admin';
+            document.getElementById('login-password').value = 'admin123';
+        }
+
         function handleLogin(e) {
-            e.preventDefault();
+            if(e) e.preventDefault();
             const uInput = document.getElementById('login-username').value.trim();
             const pInput = document.getElementById('login-password').value;
 
-            const matchedUser = users.find(u => u.username === uInput && u.pass === pInput);
+            const matchedUser = users.find(u => u.username.toLowerCase() === uInput.toLowerCase() && u.pass === pInput);
             if(matchedUser) {
                 activeUser = matchedUser.username;
                 activeUserRole = matchedUser.role;
@@ -927,7 +977,7 @@
                 renderMessengerUsersList();
                 showToast(`Welcome back, ${matchedUser.fullname}!`, 'success');
             } else {
-                showToast('Invalid username or password.', 'error');
+                showToast('Invalid username or password. Use admin / admin123', 'error');
             }
         }
 
@@ -1239,7 +1289,7 @@
         function checkGeofenceBreach(lat, lng) {
             const banner = document.getElementById('geofence-status-banner');
             if (!geofenceConfig.centerLat || !geofenceConfig.centerLng) {
-                banner.className = "bg-slate-800 border border-slate-700 text-slate-400 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between";
+                banner.className = "bg-slate-800 border border-slate-700 text-slate-400 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-between";
                 banner.innerHTML = `<span>Geofence: Center Not Set</span><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>`;
                 return { distance: 0, breached: false };
             }
@@ -1248,10 +1298,10 @@
             const breached = dist > geofenceConfig.radiusMeters;
 
             if (breached) {
-                banner.className = "bg-rose-500/20 border border-rose-500/50 text-rose-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between shadow-[0_0_12px_rgba(244,63,94,0.3)]";
+                banner.className = "bg-rose-500/20 border border-rose-500/50 text-rose-300 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-between shadow-[0_0_12px_rgba(244,63,94,0.3)]";
                 banner.innerHTML = `<span>⚠️ ALERT: Out of Fence (${Math.round(dist)}m > ${geofenceConfig.radiusMeters}m)</span><span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>`;
             } else {
-                banner.className = "bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between";
+                banner.className = "bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-between";
                 banner.innerHTML = `<span>Status: Inside Boundary (${Math.round(dist)}m)</span><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>`;
             }
 
@@ -1303,7 +1353,10 @@
 
         function renderGpsTable() {
             const tbody = document.getElementById('gps-table-body');
-            tbody.innerHTML = gpsLogs.length === 0 ? `<tr><td colspan="6" class="text-center py-8 text-slate-500">No GPS pings recorded yet.</td></tr>` : '';
+            const countEl = document.getElementById('gps-total-count');
+            countEl.innerText = `${gpsLogs.length} Points Recorded`;
+            
+            tbody.innerHTML = gpsLogs.length === 0 ? `<tr><td colspan="6" class="text-center py-8 text-slate-500">No GPS telemetry history recorded yet.</td></tr>` : '';
             gpsLogs.forEach(g => {
                 let distText = g.distance || 'N/A';
                 if (geofenceConfig.centerLat && !g.distance) {
@@ -1313,12 +1366,12 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-900/50 border-b border-slate-800/60">
-                        <td class="p-3.5 font-bold text-emerald-400">${g.id}</td>
+                        <td class="p-3.5 font-bold text-cyan-400">${g.id}</td>
                         <td class="p-3.5 text-slate-400">${g.timestamp}</td>
                         <td class="p-3.5 text-slate-200">@${g.user}</td>
                         <td class="p-3.5 text-white font-mono">${g.lat}, ${g.lng}</td>
                         <td class="p-3.5 font-mono text-cyan-300">${distText}</td>
-                        <td class="p-3.5 text-right"><a href="${g.mapLink}" target="_blank" class="bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-lg text-xs"><i class="fa-solid fa-map"></i> Map</a></td>
+                        <td class="p-3.5 text-right"><a href="${g.mapLink}" target="_blank" class="bg-cyan-600/20 text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded-lg text-xs"><i class="fa-solid fa-map"></i> Map</a></td>
                     </tr>`;
             });
             if(gpsLogs.length > 0) {
@@ -1326,45 +1379,62 @@
             }
         }
 
-        function startPlaybackSimulation() {
+        function startSatNavPlayback() {
             if (gpsLogs.length === 0) {
-                showToast('No route history available for playback.', 'error');
+                showToast('No SatNav route history available for playback.', 'error');
                 return;
             }
-            const panel = document.getElementById('playback-control-panel');
-            panel.classList.remove('hidden');
-            let idx = gpsLogs.length - 1;
 
-            if (playbackTimer) clearInterval(playbackTimer);
-            showToast('Starting GPS Route History Playback...', 'success');
+            if (satNavPlaybackTimer) clearInterval(satNavPlaybackTimer);
+            let idx = gpsLogs.length - 1; // Play from oldest to newest point
+            showToast('SatNav Navigation Playback Initialized...', 'success');
+            document.getElementById('satnav-hud-status').innerText = 'Playing Route...';
+            document.getElementById('satnav-hud-status').className = 'font-mono text-xs text-cyan-400 font-bold animate-pulse';
 
-            playbackTimer = setInterval(() => {
+            satNavPlaybackTimer = setInterval(() => {
                 if (idx < 0) {
-                    stopPlaybackSimulation();
-                    showToast('Route playback completed.', 'info');
+                    stopSatNavPlayback();
+                    showToast('SatNav route playback completed successfully.', 'info');
                     return;
                 }
+
                 const pt = gpsLogs[idx];
-                document.getElementById('playback-status-text').innerText = `Replaying Step ${gpsLogs.length - idx} of ${gpsLogs.length} | Time: ${pt.timestamp} | Coords: ${pt.lat}, ${pt.lng}`;
-                checkGeofenceBreach(pt.lat, pt.lng);
+                const stepNum = gpsLogs.length - idx;
+                
+                document.getElementById('satnav-step-badge').innerText = `Step ${stepNum} of ${gpsLogs.length} [${pt.timestamp}]`;
+                document.getElementById('satnav-current-coords').innerText = `Lat: ${pt.lat}, Lng: ${pt.lng} (@${pt.user})`;
+                
+                const check = checkGeofenceBreach(pt.lat, pt.lng);
+                document.getElementById('satnav-hud-distance').innerText = `${check.distance}m`;
+                document.getElementById('satnav-hud-accuracy').innerText = pt.accuracy || '±5.0m';
+
+                // Update SatNav map iframe view point-by-point
+                const iframe = document.getElementById('satnav-map-frame');
+                iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(pt.lng)-0.003},${parseFloat(pt.lat)-0.003},${parseFloat(pt.lng)+0.003},${parseFloat(pt.lat)+0.003}&layer=mapnik&marker=${pt.lat},${pt.lng}`;
+
                 idx--;
-            }, 1200);
+            }, 1500);
         }
 
-        function stopPlaybackSimulation() {
-            if (playbackTimer) {
-                clearInterval(playbackTimer);
-                playbackTimer = null;
+        function stopSatNavPlayback() {
+            if (satNavPlaybackTimer) {
+                clearInterval(satNavPlaybackTimer);
+                satNavPlaybackTimer = null;
             }
-            document.getElementById('playback-control-panel').classList.add('hidden');
+            document.getElementById('satnav-hud-status').innerText = 'Paused / Idle';
+            document.getElementById('satnav-hud-status').className = 'font-mono text-xs text-emerald-400 font-bold';
+            showToast('SatNav playback paused.', 'info');
         }
 
         function clearGpsLogs() {
-            if(confirm('Clear all GPS location pings?')) {
+            if(confirm('Clear all SatNav route history and telemetry logs?')) {
                 gpsLogs = [];
                 localStorage.removeItem('ullswater_gps_logs');
                 renderGpsTable();
-                showToast('GPS logs cleared.', 'info');
+                document.getElementById('satnav-step-badge').innerText = 'Standby / Ready';
+                document.getElementById('satnav-current-coords').innerText = 'Awaiting coordinates telemetry...';
+                document.getElementById('satnav-map-frame.src').src = 'about:blank';
+                showToast('SatNav logs cleared.', 'info');
             }
         }
 
@@ -1394,7 +1464,7 @@
                                 <span class="font-bold text-emerald-400 font-mono text-sm">${userLogs.length}</span>
                             </div>
                             <div class="bg-slate-950 p-2 rounded-xl">
-                                <span class="text-slate-500 block text-[10px] uppercase">GPS Pings</span>
+                                <span class="text-slate-500 block text-[10px] uppercase">SatNav Points</span>
                                 <span class="font-bold text-cyan-400 font-mono text-sm">${userGps.length}</span>
                             </div>
                         </div>
