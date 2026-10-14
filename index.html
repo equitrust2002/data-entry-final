@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ullswater Corporation - Fleet Ledger, Form Designer & Messenger</title>
+    <title>Ullswater Corporation - Fleet Ledger, Form Designer & Live Google Sheet Mirror</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -62,7 +62,7 @@
     </div>
 
     <!-- MAIN APP CONTAINER -->
-    <div class="w-full max-w-md md:max-w-5xl lg:max-w-6xl h-full md:h-[92vh] bg-slate-950 md:rounded-3xl overflow-hidden flex flex-col md:flex-row border border-slate-800 shadow-2xl">
+    <div class="w-full max-w-md md:max-w-5xl lg:max-w-7xl h-full md:h-[94vh] bg-slate-950 md:rounded-3xl overflow-hidden flex flex-col md:flex-row border border-slate-800 shadow-2xl">
 
         <!-- Sidebar Navigation -->
         <aside class="bg-slate-900 border-r border-slate-800 md:w-64 flex md:flex-col justify-between shrink-0 z-20">
@@ -73,33 +73,45 @@
                 <div>
                     <h1 class="font-bold text-sm md:text-base tracking-tight text-white leading-tight">Ullswater Corp</h1>
                     <span class="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Secure Ledger Active
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sheet Live Sync
                     </span>
                 </div>
             </div>
 
-            <nav class="flex md:flex-col flex-1 justify-around md:justify-start md:space-y-1.5 p-2 md:p-4">
-                <button onclick="switchTab('entry')" id="nav-entry" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-white bg-blue-600 shadow-md">
+            <nav class="flex md:flex-col flex-1 justify-around md:justify-start md:space-y-1 p-2 md:p-3 overflow-y-auto">
+                <button onclick="switchTab('entry')" id="nav-entry" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-white bg-blue-600 shadow-md">
                     <i class="fa-solid fa-keyboard w-5 text-center text-base"></i>
                     <span class="hidden md:inline">Data Entry</span>
                 </button>
-                <button onclick="switchTab('ledger')" id="nav-ledger" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                <button onclick="switchTab('ledger')" id="nav-ledger" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
                     <i class="fa-solid fa-book-open w-5 text-center text-base"></i>
                     <span class="hidden md:inline">Ledger & Tickets</span>
                 </button>
-                <button onclick="switchTab('comms')" id="nav-comms" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                <button onclick="switchTab('gps')" id="nav-gps" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-location-crosshairs w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">GPS Ping Ledger</span>
+                </button>
+                <button onclick="switchTab('transmissions')" id="nav-transmissions" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                    <i class="fa-solid fa-user-check w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">User Submissions</span>
+                </button>
+                <button onclick="switchTab('mirror')" id="nav-mirror" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                    <i class="fa-solid fa-table-cells w-5 text-center text-base"></i>
+                    <span class="hidden md:inline">Sheet Mirror</span>
+                </button>
+                <button onclick="switchTab('comms')" id="nav-comms" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800">
                     <i class="fa-solid fa-video w-5 text-center text-base"></i>
                     <span class="hidden md:inline">Webcam & Messenger</span>
                 </button>
-                <button onclick="switchTab('designer')" id="nav-designer" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                <button onclick="switchTab('designer')" id="nav-designer" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
                     <i class="fa-solid fa-pen-ruler w-5 text-center text-base"></i>
                     <span class="hidden md:inline">Form Designer</span>
                 </button>
-                <button onclick="switchTab('users')" id="nav-users" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                <button onclick="switchTab('users')" id="nav-users" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
                     <i class="fa-solid fa-users-gear w-5 text-center text-base"></i>
                     <span class="hidden md:inline">User Access</span>
                 </button>
-                <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex items-center space-x-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
+                <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-slate-800 permission-restricted" data-required-role="Administrator">
                     <i class="fa-solid fa-gear w-5 text-center text-base"></i>
                     <span class="hidden md:inline">Connection</span>
                 </button>
@@ -182,20 +194,16 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
                         <div>
                             <h3 class="text-lg font-bold text-white">Operations Ledger & Dispatch Tickets</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Comprehensive audit trail with local timestamp tracking.</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Comprehensive audit trail of operator submissions (GPS pings stored separately).</p>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="exportLogsCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-file-csv text-emerald-400"></i> Export CSV
                             </button>
-                            <label class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-file-import text-blue-400"></i> Import CSV
-                                <input type="file" accept=".csv" class="hidden" onchange="importLogsCSV(event)">
-                            </label>
                             <button onclick="syncToCloudEndpoint()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
                                 <i class="fa-solid fa-cloud-arrow-up"></i> Sync Sheets
                             </button>
-                            <button onclick="wipeAllData()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md" title="Wipe All Tickets">
+                            <button onclick="wipeAllData()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
                                 <i class="fa-solid fa-triangle-exclamation"></i> Clear Logs
                             </button>
                         </div>
@@ -222,7 +230,118 @@
                 </div>
             </div>
 
-            <!-- TAB 3: WEBCAM & MESSENGER -->
+            <!-- TAB 3: SEPARATED GPS PING LEDGER -->
+            <div id="tab-gps" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
+                <div class="max-w-6xl w-full mx-auto space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-location-crosshairs text-emerald-400"></i> Dedicated GPS Location Ping Ledger
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Automated and manual location telemetry logs separated to avoid cluttering operations.</p>
+                        </div>
+                        <button onclick="clearGpsLogs()" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-md">
+                            <i class="fa-solid fa-trash-can mr-1"></i> Clear GPS Logs
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-800/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-700/80">
+                                    <tr>
+                                        <th class="p-3.5">Ping ID</th>
+                                        <th class="p-3.5">Timestamp</th>
+                                        <th class="p-3.5">Operator</th>
+                                        <th class="p-3.5">Coordinates (Lat, Lng)</th>
+                                        <th class="p-3.5">Accuracy</th>
+                                        <th class="p-3.5 text-right">Map Link</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gps-table-body" class="divide-y divide-slate-800/60 font-mono"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: USER SUBMISSIONS AUDIT TRAIL -->
+            <div id="tab-transmissions" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
+                <div class="max-w-6xl w-full mx-auto space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-user-check text-blue-400"></i> User Submissions & Transmissions Audit
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Review all users involved in transmitting data, view their submissions, and verify synchronization.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="user-transmission-summary-cards"></div>
+
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                            <h4 class="font-bold text-sm text-white">Detailed Transmissions by Operator</h4>
+                            <select id="transmission-user-filter" onchange="renderTransmissionsTable(this.value)" class="bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-1.5 font-medium">
+                                <option value="ALL">All Operators</option>
+                            </select>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-800/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-700/80">
+                                    <tr>
+                                        <th class="p-3.5">Operator</th>
+                                        <th class="p-3.5">Total Submissions</th>
+                                        <th class="p-3.5">Forms Used</th>
+                                        <th class="p-3.5">Last Transmission</th>
+                                        <th class="p-3.5 text-right">View Log Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transmissions-table-body" class="divide-y divide-slate-800/60 font-mono"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: LIVE GOOGLE SHEET / EXCEL MIRROR -->
+            <div id="tab-mirror" class="tab-content flex-1 overflow-hidden p-4 md:p-6 hidden flex flex-col">
+                <div class="max-w-7xl w-full mx-auto h-full flex flex-col space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-table-cells text-emerald-400"></i> Live Google Sheet / Excel Mirror & Editor
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Alter, view, and synchronize your cloud workbook directly inside the application.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="refreshSheetMirror()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-rotate-right"></i> Refresh View
+                            </button>
+                            <button onclick="syncToCloudEndpoint()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> Synchronize Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col shadow-xl">
+                        <div class="bg-slate-800 px-4 py-2 text-xs font-mono text-slate-400 flex justify-between items-center border-b border-slate-700">
+                            <span id="mirror-url-display" class="truncate">Target: Not Configured</span>
+                            <a id="mirror-external-link" href="#" target="_blank" class="text-blue-400 hover:underline flex items-center gap-1"><i class="fa-solid fa-external-link-alt"></i> Open in New Tab</a>
+                        </div>
+                        <div class="flex-1 relative bg-slate-950 flex items-center justify-center">
+                            <iframe id="sheet-iframe-mirror" class="w-full h-full border-0" src="about:blank"></iframe>
+                            <div id="mirror-placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-3 bg-slate-950/90 text-center p-6">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-3xl"></i>
+                                <p class="text-sm text-white font-semibold">Google Sheet or Excel URL not configured.</p>
+                                <p class="text-xs text-slate-400 max-w-md">Please go to the <button onclick="switchTab('settings')" class="text-blue-400 underline font-semibold">Connection Settings</button> tab to paste your Direct Sheet Link or Web App URL.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: WEBCAM & MESSENGER -->
             <div id="tab-comms" class="tab-content flex-1 overflow-hidden p-4 md:p-6 hidden flex flex-col">
                 <div class="max-w-6xl w-full mx-auto h-full flex flex-col md:flex-row gap-4">
                     <div class="w-full md:w-1/2 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col space-y-4 shadow-xl">
@@ -285,7 +404,7 @@
                 </div>
             </div>
 
-            <!-- TAB 4: FORM DESIGNER -->
+            <!-- TAB 7: FORM DESIGNER -->
             <div id="tab-designer" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
                 <div class="max-w-5xl w-full mx-auto space-y-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
@@ -318,7 +437,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: USER ACCESS -->
+            <!-- TAB 8: USER ACCESS -->
             <div id="tab-users" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
                 <div class="max-w-4xl w-full mx-auto space-y-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
@@ -349,15 +468,26 @@
                 </div>
             </div>
 
-            <!-- TAB 6: CONNECTION SETTINGS -->
+            <!-- TAB 9: CONNECTION SETTINGS -->
             <div id="tab-settings" class="tab-content flex-1 overflow-y-auto p-4 md:p-6 hidden">
-                <div class="max-w-2xl w-full mx-auto space-y-6">
+                <div class="max-w-3xl w-full mx-auto space-y-6">
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl">
                         <div>
                             <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-cloud-arrow-up text-blue-400"></i> Dedicated Sheet Connection
+                                <i class="fa-solid fa-cloud-arrow-up text-blue-400"></i> Google Sheet & Excel Connection Hub
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Configure your Google Apps Script Web App URL so each form logs into its own dedicated sheet tab.</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Connect and hook your ledger via manual input or by scanning your Google Sheet / Excel Web App QR code.</p>
+                        </div>
+
+                        <!-- SCAN QR CODE TO HOOK CONNECTION -->
+                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <div class="text-xs font-bold text-white flex items-center gap-1.5"><i class="fa-solid fa-qrcode text-cyan-400"></i> Instant QR / Barcode Connection Hook</div>
+                                <div class="text-[11px] text-slate-400">Scan a QR code containing your Google Apps Script endpoint URL to auto-configure.</div>
+                            </div>
+                            <button onclick="openConnectionScannerModal()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2 shrink-0">
+                                <i class="fa-solid fa-camera"></i> Scan Connection QR
+                            </button>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
@@ -366,7 +496,7 @@
                                 <div class="text-[11px] text-slate-400">Automatic multi-tab worksheet routing via Web App URL</div>
                             </button>
                             <button onclick="setConnectionType('sheets')" id="conn-btn-sheets" class="p-4 rounded-xl border text-left transition flex flex-col gap-1 bg-slate-950 border-slate-800 text-slate-400">
-                                <div class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-file-excel text-emerald-400"></i> Direct Sheet Link</div>
+                                <div class="font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-file-excel text-emerald-400"></i> Direct Excel / Sheet Link</div>
                                 <div class="text-[11px] text-slate-400">Spreadsheet reference link for quick viewing</div>
                             </button>
                         </div>
@@ -377,15 +507,15 @@
                                 <input type="text" id="setting-token" value="ULLSWATER-CORP-SECURE-9021" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Google Apps Script Web App URL</label>
+                                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Google Apps Script Web App URL (Endpoint)</label>
                                 <input type="text" id="setting-webapp-id" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             </div>
                         </div>
 
                         <div id="conn-panel-sheets" class="space-y-4 pt-2 hidden">
                             <div>
-                                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Google Sheet Web View URL</label>
-                                <input type="text" id="setting-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..." class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono text-xs">
+                                <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Google Sheet / Excel Web View URL (for Mirroring)</label>
+                                <input type="text" id="setting-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../edit" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono text-xs">
                             </div>
                         </div>
 
@@ -506,7 +636,7 @@
             <div class="p-6 space-y-4" id="edit-modal-fields-container"></div>
             <div class="bg-slate-900 px-6 py-4 border-t border-slate-800 flex justify-end gap-2">
                 <button onclick="closeEditModal()" class="bg-slate-800 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl">Cancel</button>
-                <button onclick="saveEditedLedgerEntry()" class="bg-blue-600 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-md">Save Changes</button>
+                <button onclick="saveEditedLedgerEntry()" class="bg-blue-600 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-md">Save & Sync</button>
             </div>
         </div>
     </div>
@@ -523,7 +653,6 @@
             <div class="p-6 space-y-4 flex-1 flex flex-col items-center">
                 <div class="relative bg-black rounded-2xl w-full h-64 overflow-hidden border border-slate-800 flex items-center justify-center">
                     <video id="camera-video-stream" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
-                    <!-- Hidden video element required by ZXing decoder reader -->
                     <video id="zxing-video-element" autoplay playsinline muted class="hidden"></video>
                     <canvas id="camera-canvas" class="hidden"></canvas>
                     <div id="scanner-laser" class="absolute top-1/2 left-4 right-4 h-0.5 bg-rose-500 shadow-[0_0_12px_#f43f5e] animate-bounce"></div>
@@ -535,6 +664,29 @@
                         <i class="fa-solid fa-file-image"></i> Capture & Read Letters/Script (OCR)
                     </button>
                     <button onclick="closeScannerModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-5 py-3 rounded-xl transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONNECTION QR SCANNER MODAL -->
+    <div id="connection-scanner-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+            <div class="bg-slate-800 px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-cyan-400"></i> Scan Google Sheet / Excel Web App QR
+                </h3>
+                <button onclick="closeConnectionScannerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4 flex-1 flex flex-col items-center">
+                <div class="relative bg-black rounded-2xl w-full h-64 overflow-hidden border border-slate-800 flex items-center justify-center">
+                    <video id="connection-video-stream" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover"></video>
+                    <video id="connection-zxing-element" autoplay playsinline muted class="hidden"></video>
+                    <div class="absolute inset-x-8 inset-y-12 border-2 border-dashed border-cyan-400/60 rounded-xl pointer-events-none"></div>
+                </div>
+                <div id="connection-scanner-status" class="text-xs text-slate-300 text-center font-mono">Point camera at Google Sheet Web App endpoint QR code...</div>
+                <div class="w-full flex gap-2">
+                    <button onclick="closeConnectionScannerModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-3 rounded-xl transition">Cancel</button>
                 </div>
             </div>
         </div>
@@ -634,6 +786,7 @@
 
         let forms = JSON.parse(localStorage.getItem('ullswater_forms')) || defaultForms;
         let logs = JSON.parse(localStorage.getItem('ullswater_logs')) || [];
+        let gpsLogs = JSON.parse(localStorage.getItem('ullswater_gps_logs')) || [];
         let chatMessages = JSON.parse(localStorage.getItem('ullswater_chat_messages')) || [];
 
         let activeFormId = forms[0].id;
@@ -641,6 +794,8 @@
         let activeTargetFieldId = null;
         let activeCameraStream = null;
         let zxingCodeReader = null;
+        let connectionZxingReader = null;
+        let connectionCameraStream = null;
         let currentEditingTicketId = null;
         let activeDropdownEditingField = null;
 
@@ -657,6 +812,8 @@
             renderDesignerFormList();
             renderFormEditorWorkspace();
             renderLedgerTable();
+            renderGpsTable();
+            renderTransmissionsOverview();
             renderUsersTable();
             renderMessengerUsersList();
             updateSidebarStats();
@@ -732,7 +889,7 @@
             activeUserRole = null;
             localStorage.removeItem('ullswater_active_user');
             localStorage.removeItem('ullswater_active_role');
-            document.getElementById('login-modal').value = '';
+            document.getElementById('login-username').value = '';
             document.getElementById('login-password').value = '';
             checkAuthSession();
             showToast('Signed out successfully.', 'info');
@@ -761,7 +918,7 @@
         }
 
         function switchTab(tabName) {
-            const restrictedTabs = ['designer', 'users', 'settings'];
+            const restrictedTabs = ['transmissions', 'mirror', 'designer', 'users', 'settings'];
             if(restrictedTabs.includes(tabName) && activeUserRole !== 'Administrator') {
                 showToast('Access Denied: Administrator role required.', 'error');
                 return;
@@ -779,6 +936,36 @@
 
             if(tabName === 'comms' && !activeCommsStream) {
                 startWebcamFeed();
+            }
+            if(tabName === 'mirror') {
+                refreshSheetMirror();
+            }
+            if(tabName === 'transmissions') {
+                renderTransmissionsOverview();
+            }
+        }
+
+        function refreshSheetMirror() {
+            const settings = JSON.parse(localStorage.getItem('ullswater_connection_settings')) || {};
+            const sheetUrl = settings.sheetUrl || settings.webappId;
+            const iframe = document.getElementById('sheet-iframe-mirror');
+            const placeholder = document.getElementById('mirror-placeholder');
+            const urlDisplay = document.getElementById('mirror-url-display');
+            const externalLink = document.getElementById('mirror-external-link');
+
+            if(sheetUrl && sheetUrl.startsWith('http')) {
+                let embedUrl = sheetUrl;
+                if(sheetUrl.includes('/edit')) {
+                    embedUrl = sheetUrl.replace(/\/edit.*$/, '/edit?usp=sharing&embedded=true');
+                }
+                iframe.src = embedUrl;
+                urlDisplay.innerText = `Target: ${sheetUrl}`;
+                externalLink.href = sheetUrl;
+                placeholder.classList.add('hidden');
+            } else {
+                iframe.src = 'about:blank';
+                placeholder.classList.remove('hidden');
+                urlDisplay.innerText = 'Target: Not Configured';
             }
         }
 
@@ -965,37 +1152,111 @@
                     const lon = position.coords.longitude.toFixed(6);
                     const acc = position.coords.accuracy.toFixed(1);
                     const localTime = getLocalTimestamp();
-                    const ticketId = 'GPS-' + String(Math.floor(100000 + Math.random() * 900000));
+                    const pingId = 'GPS-' + String(Math.floor(100000 + Math.random() * 900000));
                     
-                    const gpsLogEntry = {
-                        id: ticketId,
+                    const gpsEntry = {
+                        id: pingId,
                         timestamp: localTime,
                         user: activeUser || 'system',
-                        formName: 'GPS Location Ping',
-                        formId: 'auto-gps-ping',
-                        data: {
-                            'Operator': activeUser || 'System',
-                            'Latitude': lat,
-                            'Longitude': lon,
-                            'Google Coordinates': `${lat}, ${lon}`,
-                            'Accuracy': `±${acc}m`,
-                            'Google Map Link': `https://www.google.com/maps?q=${lat},${lon}`
-                        },
-                        status: 'VALID'
+                        lat: lat,
+                        lng: lon,
+                        accuracy: `±${acc}m`,
+                        mapLink: `https://www.google.com/maps?q=${lat},${lon}`
                     };
 
-                    logs.unshift(gpsLogEntry);
-                    localStorage.setItem('ullswater_logs', JSON.stringify(logs));
-                    renderLedgerTable();
-                    updateSidebarStats();
-                    postLogToGoogleSheet(gpsLogEntry);
+                    gpsLogs.unshift(gpsEntry);
+                    localStorage.setItem('ullswater_gps_logs', JSON.stringify(gpsLogs));
+                    renderGpsTable();
+                    postLogToGoogleSheet({ id: pingId, timestamp: localTime, user: activeUser || 'system', formName: 'GPS Ping', data: gpsEntry }, 'GPS_Tab');
                 },
                 (err) => {},
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
 
-        // ==================== 100% RELIABLE ZXING BARCODE/QR & HIGH-EFFICIENCY SCRIPT OCR ====================
+        function renderGpsTable() {
+            const tbody = document.getElementById('gps-table-body');
+            tbody.innerHTML = gpsLogs.length === 0 ? `<tr><td colspan="6" class="text-center py-8 text-slate-500">No GPS pings recorded yet.</td></tr>` : '';
+            gpsLogs.forEach(g => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-900/50 border-b border-slate-800/60">
+                        <td class="p-3.5 font-bold text-emerald-400">${g.id}</td>
+                        <td class="p-3.5 text-slate-400">${g.timestamp}</td>
+                        <td class="p-3.5 text-slate-200">@${g.user}</td>
+                        <td class="p-3.5 text-white font-mono">${g.lat}, ${g.lng}</td>
+                        <td class="p-3.5 text-slate-400">${g.accuracy}</td>
+                        <td class="p-3.5 text-right"><a href="${g.mapLink}" target="_blank" class="bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-lg text-xs"><i class="fa-solid fa-map"></i> Map</a></td>
+                    </tr>`;
+            });
+        }
+
+        function clearGpsLogs() {
+            if(confirm('Clear all GPS location pings?')) {
+                gpsLogs = [];
+                localStorage.removeItem('ullswater_gps_logs');
+                renderGpsTable();
+                showToast('GPS logs cleared.', 'info');
+            }
+        }
+
+        function renderTransmissionsOverview() {
+            const container = document.getElementById('user-transmission-summary-cards');
+            const filterSelect = document.getElementById('transmission-user-filter');
+            
+            filterSelect.innerHTML = `<option value="ALL">All Operators (${users.length})</option>`;
+            users.forEach(u => {
+                filterSelect.innerHTML += `<option value="${u.username}">@${u.username} (${u.fullname})</option>`;
+            });
+
+            container.innerHTML = '';
+            users.forEach(u => {
+                const userLogs = logs.filter(l => l.user === u.username);
+                const userGps = gpsLogs.filter(g => g.user === u.username);
+                container.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm text-white">@${u.username}</span>
+                            <span class="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-semibold">${u.role}</span>
+                        </div>
+                        <div class="text-xs text-slate-400">${u.fullname}</div>
+                        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 text-xs">
+                            <div class="bg-slate-950 p-2 rounded-xl">
+                                <span class="text-slate-500 block text-[10px] uppercase">Form Submissions</span>
+                                <span class="font-bold text-emerald-400 font-mono text-sm">${userLogs.length}</span>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded-xl">
+                                <span class="text-slate-500 block text-[10px] uppercase">GPS Pings</span>
+                                <span class="font-bold text-cyan-400 font-mono text-sm">${userGps.length}</span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            renderTransmissionsTable('ALL');
+        }
+
+        function renderTransmissionsTable(selectedUsername) {
+            const tbody = document.getElementById('transmissions-table-body');
+            tbody.innerHTML = '';
+            
+            const filteredUsers = selectedUsername === 'ALL' ? users : users.filter(u => u.username === selectedUsername);
+            
+            filteredUsers.forEach(u => {
+                const userLogs = logs.filter(l => l.user === u.username);
+                const formsUsed = [...new Set(userLogs.map(l => l.formName))].join(', ') || 'None';
+                const lastLog = userLogs.length > 0 ? userLogs[0].timestamp : 'No transmissions yet';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-900/50 border-b border-slate-800/60">
+                        <td class="p-3.5 font-bold text-white">@${u.username} <div class="text-[10px] text-slate-400 font-normal">${u.fullname}</div></td>
+                        <td class="p-3.5 font-bold text-emerald-400">${userLogs.length} Tickets</td>
+                        <td class="p-3.5 text-slate-300">${formsUsed}</td>
+                        <td class="p-3.5 text-slate-400">${lastLog}</td>
+                        <td class="p-3.5 text-right"><button onclick="switchTab('ledger')" class="bg-blue-600/20 text-blue-300 border border-blue-500/30 px-3 py-1 rounded-lg text-xs font-semibold">View Logs</button></td>
+                    </tr>`;
+            });
+        }
+
         async function openScannerModal(fieldId) {
             activeTargetFieldId = fieldId;
             const modal = document.getElementById('scanner-modal');
@@ -1007,22 +1268,18 @@
 
             try {
                 zxingCodeReader = new ZXing.BrowserMultiFormatReader();
-                
-                // Automatically request environment-facing (rear) camera on phones
                 zxingCodeReader.decodeFromVideoDevice(undefined, 'zxing-video-element', (result, err) => {
                     if (result) {
                         applyScannedValue(result.getText());
                     }
                 }).catch(e => console.warn(e));
 
-                // Also display camera feed in preview element
                 activeCameraStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: { ideal: 'environment' } },
                     audio: false 
                 });
                 videoEl.srcObject = activeCameraStream;
                 statusText.innerText = "Ready! Center Barcode/QR inside dashed frame or click OCR.";
-
             } catch (err) {
                 statusText.innerText = "Camera access error: " + err.message;
                 showToast("Camera error: " + err.message, "error");
@@ -1061,7 +1318,54 @@
             showToast(`Successfully captured: ${val}`, 'success');
         }
 
-        // VIVID HIGH-EFFICIENCY SCRIPT OCR ENGINE WITH IMAGE PREPROCESSING
+        async function openConnectionScannerModal() {
+            const modal = document.getElementById('connection-scanner-modal');
+            modal.classList.remove('hidden');
+            const videoEl = document.getElementById('connection-video-stream');
+            const statusText = document.getElementById('connection-scanner-status');
+
+            statusText.innerText = "Activating camera for Connection QR Scan...";
+            try {
+                connectionZxingReader = new ZXing.BrowserMultiFormatReader();
+                connectionZxingReader.decodeFromVideoDevice(undefined, 'connection-zxing-element', (result, err) => {
+                    if (result) {
+                        const scannedUrl = result.getText().trim();
+                        if (scannedUrl.startsWith('http')) {
+                            document.getElementById('setting-webapp-id').value = scannedUrl;
+                            document.getElementById('setting-sheet-url').value = scannedUrl;
+                            saveConnectionSettings();
+                            closeConnectionScannerModal();
+                            showToast('Successfully hooked Google Sheet Web App via QR Scan!', 'success');
+                        } else {
+                            showToast('Scanned QR is not a valid Web App URL endpoint.', 'error');
+                        }
+                    }
+                }).catch(e => console.warn(e));
+
+                connectionCameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                    audio: false
+                });
+                videoEl.srcObject = connectionCameraStream;
+                statusText.innerText = "Ready! Center Connection QR Code inside dashed frame.";
+            } catch (err) {
+                statusText.innerText = "Camera error: " + err.message;
+                showToast("Camera error: " + err.message, "error");
+            }
+        }
+
+        function closeConnectionScannerModal() {
+            if (connectionZxingReader) {
+                connectionZxingReader.reset();
+                connectionZxingReader = null;
+            }
+            if (connectionCameraStream) {
+                connectionCameraStream.getTracks().forEach(track => track.stop());
+                connectionCameraStream = null;
+            }
+            document.getElementById('connection-scanner-modal').classList.add('hidden');
+        }
+
         async function captureAndProcessVividOCR() {
             const video = document.getElementById('camera-video-stream');
             const canvas = document.getElementById('camera-canvas');
@@ -1076,22 +1380,15 @@
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
             statusText.innerText = "Preprocessing image: Enhancing contrast for letters & script...";
 
-            // Advanced Canvas Preprocessing for Crystal-Clear OCR Recognition
             let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             let data = imgData.data;
-            
             for (let i = 0; i < data.length; i += 4) {
                 let r = data[i], g = data[i + 1], b = data[i + 2];
-                // Grayscale luminance formula
                 let gray = 0.299 * r + 0.587 * g + 0.114 * b;
-                // High contrast binarization threshold for alphanumeric characters & cursive script
                 let vividVal = gray < 140 ? 0 : 255;
-                data[i] = vividVal;     // R
-                data[i + 1] = vividVal; // G
-                data[i + 2] = vividVal; // B
+                data[i] = vividVal; data[i + 1] = vividVal; data[i + 2] = vividVal;
             }
             ctx.putImageData(imgData, 0, 0);
 
@@ -1363,24 +1660,26 @@
             logs.unshift(newLog);
             localStorage.setItem('ullswater_logs', JSON.stringify(logs));
             renderLedgerTable();
+            renderTransmissionsOverview();
             updateSidebarStats();
-            showToast(`Ticket ${ticketId} generated! Sending to sheet...`, 'success');
+            showToast(`Ticket ${ticketId} generated & synced!`, 'success');
             
-            postLogToGoogleSheet(newLog);
+            postLogToGoogleSheet(newLog, form.name);
             renderActiveFormFields();
             openTicketModal(ticketId);
         }
 
-        function postLogToGoogleSheet(logEntry) {
+        function postLogToGoogleSheet(logEntry, sheetTabName = 'Ledger') {
             const settings = JSON.parse(localStorage.getItem('ullswater_connection_settings')) || {};
             const webappUrl = settings.webappId;
 
             if(webappUrl && webappUrl.startsWith('http')) {
+                const payload = { ...logEntry, targetTab: sheetTabName };
                 fetch(webappUrl, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(logEntry)
+                    body: JSON.stringify(payload)
                 }).then(() => {}).catch(err => {});
             }
         }
@@ -1394,16 +1693,14 @@
                 return;
             }
 
-            showToast(`Syncing ${logs.length} entries to dedicated form sheet tabs...`, 'info');
-            Promise.all(logs.map(log => {
-                return fetch(webappUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(log)
-                });
-            })).then(() => {
-                showToast('All form records synced to their dedicated sheet tabs!', 'success');
+            showToast(`Synchronizing ${logs.length} entries & ${gpsLogs.length} GPS pings to cloud sheet tabs...`, 'info');
+            const allSyncs = [
+                ...logs.map(log => fetch(webappUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...log, targetTab: log.formName }) })),
+                ...gpsLogs.map(gps => fetch(webappUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...gps, targetTab: 'GPS_Pings', formName: 'GPS Ping' }) }))
+            ];
+
+            Promise.all(allSyncs).then(() => {
+                showToast('All records fully synchronized to Google Sheet / Excel cloud endpoint!', 'success');
             }).catch(err => {
                 showToast('Sync error: ' + err.message, 'error');
             });
@@ -1479,6 +1776,7 @@
                     log.status = 'VOIDED';
                     localStorage.setItem('ullswater_logs', JSON.stringify(logs));
                     renderLedgerTable();
+                    renderTransmissionsOverview();
                     showToast('Ticket voided.', 'info');
                 }
             }
@@ -1511,8 +1809,10 @@
             });
             localStorage.setItem('ullswater_logs', JSON.stringify(logs));
             renderLedgerTable();
+            renderTransmissionsOverview();
             closeEditModal();
-            showToast('Ticket updated!', 'success');
+            postLogToGoogleSheet(log, log.formName);
+            showToast('Ticket updated and synchronized to cloud sheet!', 'success');
         }
 
         function renderDesignerFormList() {
@@ -1532,6 +1832,26 @@
             selectedDesignFormId = formId;
             renderDesignerFormList();
             renderFormEditorWorkspace();
+        }
+
+        function moveFieldUp(formId, index) {
+            const form = forms.find(f => f.id === formId);
+            if (!form || index <= 0) return;
+            const temp = form.fields[index];
+            form.fields[index] = form.fields[index - 1];
+            form.fields[index - 1] = temp;
+            renderFormEditorWorkspace();
+            saveAllFormDesigns();
+        }
+
+        function moveFieldDown(formId, index) {
+            const form = forms.find(f => f.id === formId);
+            if (!form || index >= form.fields.length - 1) return;
+            const temp = form.fields[index];
+            form.fields[index] = form.fields[index + 1];
+            form.fields[index + 1] = temp;
+            renderFormEditorWorkspace();
+            saveAllFormDesigns();
         }
 
         function renderFormEditorWorkspace() {
@@ -1555,6 +1875,7 @@
                 if(field.hidden === undefined) field.hidden = false;
                 let extraConfigHTML = '';
                 if(field.type === 'dropdown') {
+                    if(!field.options) field.options = [];
                     extraConfigHTML = `<button type="button" onclick="openDropdownManager('${form.id}', '${field.id}')" class="bg-blue-600/20 text-blue-300 border border-blue-500/40 px-3 py-1.5 rounded-lg text-xs font-semibold"><i class="fa-solid fa-list"></i> Edit Dropdown Options (${(field.options || []).length})</button>`;
                 } else if(field.type === 'computation') {
                     extraConfigHTML = `<div class="flex items-center gap-2 pt-1"><span class="text-[11px] font-bold text-emerald-400 uppercase">Formula:</span><input type="text" value="${field.formula || ''}" onchange="updateFieldFormula('${form.id}', '${field.id}', this.value)" class="flex-1 bg-slate-900 border border-slate-700 text-white text-xs font-mono rounded-lg px-3 py-1.5"></div>`;
@@ -1567,8 +1888,10 @@
                                 <span class="bg-slate-800 text-slate-400 text-xs font-mono px-2 py-1 rounded">#${index + 1}</span>
                                 <input type="text" value="${field.label}" onchange="updateFieldProperty('${form.id}', '${field.id}', 'label', this.value)" class="bg-slate-900 border border-slate-700 text-white text-sm font-semibold rounded-xl px-3 py-1.5 flex-1">
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <select onchange="updateFieldProperty('${form.id}', '${field.id}', 'type', this.value)" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-xl px-3 py-1.5">
+                            <div class="flex items-center space-x-1">
+                                <button onclick="moveFieldUp('${form.id}', ${index})" ${index === 0 ? 'disabled class="opacity-30 cursor-not-allowed p-2 text-slate-400"' : 'class="p-2 text-slate-300 hover:text-white"' } title="Move Up"><i class="fa-solid fa-arrow-up"></i></button>
+                                <button onclick="moveFieldDown('${form.id}', ${index})" ${index === form.fields.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed p-2 text-slate-400"' : 'class="p-2 text-slate-300 hover:text-white"' } title="Move Down"><i class="fa-solid fa-arrow-down"></i></button>
+                                <select onchange="updateFieldProperty('${form.id}', '${field.id}', 'type', this.value)" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-xl px-3 py-1.5 ml-2">
                                     <option value="text" ${field.type==='text'?'selected':''}>Text Input</option>
                                     <option value="barcode" ${field.type==='barcode'?'selected':''}>Barcode / Scanner</option>
                                     <option value="location" ${field.type==='location'?'selected':''}>GPS Map</option>
@@ -1581,7 +1904,7 @@
                                     <option value="timestamp" ${field.type==='timestamp'?'selected':''}>Timestamp</option>
                                     <option value="ocr" ${field.type==='ocr'?'selected':''}>OCR Scanner</option>
                                 </select>
-                                <button onclick="removeFieldFromForm('${form.id}', '${field.id}')" class="text-rose-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                                <button onclick="removeFieldFromForm('${form.id}', '${field.id}')" class="text-rose-400 p-2 ml-1"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>
                         <div class="flex items-center justify-between pt-1 border-t border-slate-900">
@@ -1626,6 +1949,9 @@
             const field = form.fields.find(f => f.id === fieldId);
             if(field) { 
                 field[prop] = val; 
+                if (prop === 'type' && val === 'dropdown' && !field.options) {
+                    field.options = [];
+                }
                 renderFormEditorWorkspace(); 
                 saveAllFormDesigns();
             }
@@ -1680,6 +2006,9 @@
 
         function openDropdownManager(formId, fieldId) {
             activeDropdownEditingField = { formId, fieldId };
+            const form = forms.find(f => f.id === formId);
+            const field = form.fields.find(f => f.id === fieldId);
+            if(!field.options) field.options = [];
             renderDropdownOptionsList();
             document.getElementById('dropdown-options-modal').classList.remove('hidden');
         }
@@ -1694,8 +2023,9 @@
             const container = document.getElementById('modal-dropdown-items-container');
             const form = forms.find(f => f.id === activeDropdownEditingField.formId);
             const field = form.fields.find(f => f.id === activeDropdownEditingField.fieldId);
+            if(!field.options) field.options = [];
             container.innerHTML = '';
-            (field.options || []).forEach((opt, idx) => {
+            field.options.forEach((opt, idx) => {
                 container.innerHTML += `<div class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs"><span class="text-white">${opt}</span><button onclick="removeDropdownOptionItem(${idx})" class="text-rose-400"><i class="fa-solid fa-trash-can"></i></button></div>`;
             });
         }
@@ -1706,6 +2036,7 @@
             if(!val) return;
             const form = forms.find(f => f.id === activeDropdownEditingField.formId);
             const field = form.fields.find(f => f.id === activeDropdownEditingField.fieldId);
+            if(!field.options) field.options = [];
             field.options.push(val);
             input.value = '';
             renderDropdownOptionsList();
@@ -1714,6 +2045,7 @@
         function removeDropdownOptionItem(idx) {
             const form = forms.find(f => f.id === activeDropdownEditingField.formId);
             const field = form.fields.find(f => f.id === activeDropdownEditingField.fieldId);
+            if(!field.options) field.options = [];
             field.options.splice(idx, 1);
             renderDropdownOptionsList();
         }
@@ -1744,7 +2076,7 @@
             const sheetUrl = document.getElementById('setting-sheet-url').value;
             const connType = localStorage.getItem('ullswater_conn_type') || 'token';
             localStorage.setItem('ullswater_connection_settings', JSON.stringify({ connType, token, webappId, sheetUrl }));
-            showToast('Connection saved!', 'success');
+            showToast('Connection hook and mirror saved!', 'success');
         }
 
         function loadSettingsToUI() {
@@ -1777,7 +2109,7 @@
             if(!username || !fullname || !pass) return showToast('Fill all fields', 'error');
             users.push({ username, fullname, role, pass });
             localStorage.setItem('ullswater_users', JSON.stringify(users));
-            renderUsersTable(); renderMessengerUsersList(); closeUserModal();
+            renderUsersTable(); renderMessengerUsersList(); renderTransmissionsOverview(); closeUserModal();
             showToast('User added', 'success');
         }
 
@@ -1785,11 +2117,11 @@
             if(users.length <= 1) return showToast('Cannot delete last user', 'error');
             users = users.filter(x => x.username !== u);
             localStorage.setItem('ullswater_users', JSON.stringify(users));
-            renderUsersTable(); renderMessengerUsersList();
+            renderUsersTable(); renderMessengerUsersList(); renderTransmissionsOverview();
         }
 
         function exportSystemDatabaseJSON() {
-            const blob = new Blob([JSON.stringify({ users, forms, logs, chatMessages }, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify({ users, forms, logs, gpsLogs, chatMessages }, null, 2)], { type: 'application/json' });
             const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'Ullswater_Backup.json'; a.click();
             showToast('Database exported', 'success');
         }
@@ -1804,9 +2136,11 @@
                     if(db.users) users = db.users;
                     if(db.forms) forms = db.forms;
                     if(db.logs) logs = db.logs;
+                    if(db.gpsLogs) gpsLogs = db.gpsLogs;
                     localStorage.setItem('ullswater_users', JSON.stringify(users));
                     localStorage.setItem('ullswater_forms', JSON.stringify(forms));
                     localStorage.setItem('ullswater_logs', JSON.stringify(logs));
+                    localStorage.setItem('ullswater_gps_logs', JSON.stringify(gpsLogs));
                     location.reload();
                 } catch(err) { showToast('Invalid JSON', 'error'); }
             };
@@ -1824,10 +2158,8 @@
             const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'Ullswater_Ledger.csv'; a.click();
         }
 
-        function importLogsCSV(event) {}
-
         function wipeAllData() { 
-            if (confirm("Clear logs?")) { logs = []; localStorage.removeItem('ullswater_logs'); renderLedgerTable(); updateSidebarStats(); }
+            if (confirm("Clear logs?")) { logs = []; localStorage.removeItem('ullswater_logs'); renderLedgerTable(); renderTransmissionsOverview(); updateSidebarStats(); }
         }
 
         function updateSidebarStats() { document.getElementById('sidebar-queue').innerText = logs.length + ' Tickets'; }
