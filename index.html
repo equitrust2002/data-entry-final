@@ -849,6 +849,7 @@
                     { id: 'f6', label: 'Unit Price (₱)', type: 'numbers', required: true, hidden: false },
                     { id: 'f_total', label: 'Total Amount (₱)', type: 'computation', formula: 'f5 * f6', required: false, hidden: false },
                     { id: 'f_time', label: 'Dispatch Time', type: 'time', required: true, hidden: false },
+                    { id: 'f_locstamp', label: 'Location Stamp', type: 'location_stamp', required: true, hidden: false },
                     { id: 'f3', label: 'GPS Coordinates & Map', type: 'location', required: false, hidden: false },
                     { id: 'f4', label: 'Item Photo', type: 'picture', required: false, hidden: false }
                 ]
@@ -862,6 +863,7 @@
                     { id: 'd1', label: 'Tracking Number', type: 'barcode', required: true, hidden: false },
                     { id: 'd2', label: 'Delivery Date', type: 'date', required: true, hidden: false },
                     { id: 'd_time', label: 'Delivery Time', type: 'time', required: true, hidden: false },
+                    { id: 'd_locstamp', label: 'Location Stamp', type: 'location_stamp', required: true, hidden: false },
                     { id: 'd3', label: 'GPS Coordinates & Map', type: 'location', required: true, hidden: false },
                     { id: 'd4', label: 'Proof of Delivery Photo', type: 'picture', required: false, hidden: false },
                     { id: 'd5', label: 'Status Result', type: 'dropdown', options: ['Delivered', 'Absent', 'Rescheduled', 'Returned'], required: true, hidden: false }
@@ -1386,7 +1388,7 @@
             }
 
             if (satNavPlaybackTimer) clearInterval(satNavPlaybackTimer);
-            let idx = gpsLogs.length - 1; // Play from oldest to newest point
+            let idx = gpsLogs.length - 1;
             showToast('SatNav Navigation Playback Initialized...', 'success');
             document.getElementById('satnav-hud-status').innerText = 'Playing Route...';
             document.getElementById('satnav-hud-status').className = 'font-mono text-xs text-cyan-400 font-bold animate-pulse';
@@ -1408,7 +1410,6 @@
                 document.getElementById('satnav-hud-distance').innerText = `${check.distance}m`;
                 document.getElementById('satnav-hud-accuracy').innerText = pt.accuracy || '±5.0m';
 
-                // Update SatNav map iframe view point-by-point
                 const iframe = document.getElementById('satnav-map-frame');
                 iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(pt.lng)-0.003},${parseFloat(pt.lat)-0.003},${parseFloat(pt.lng)+0.003},${parseFloat(pt.lat)+0.003}&layer=mapnik&marker=${pt.lat},${pt.lng}`;
 
@@ -1433,7 +1434,7 @@
                 renderGpsTable();
                 document.getElementById('satnav-step-badge').innerText = 'Standby / Ready';
                 document.getElementById('satnav-current-coords').innerText = 'Awaiting coordinates telemetry...';
-                document.getElementById('satnav-map-frame.src').src = 'about:blank';
+                document.getElementById('satnav-map-frame').src = 'about:blank';
                 showToast('SatNav logs cleared.', 'info');
             }
         }
@@ -1770,6 +1771,18 @@
                                 </button>
                             </div>`;
                         break;
+                    case 'location_stamp':
+                        inputHTML = `
+                            <div class="space-y-2">
+                                <div class="flex gap-2">
+                                    <input type="text" id="field_${field.id}" name="${field.label}" ${field.required ? 'required' : ''} placeholder="Click stamp to acquire GPS location..." readonly class="flex-1 bg-slate-950 border border-cyan-500/50 text-cyan-300 text-sm rounded-xl px-3.5 py-2.5 font-mono">
+                                    <button type="button" onclick="fetchLocationStamp('${field.id}')" class="bg-cyan-600 hover:bg-cyan-500 text-white border border-cyan-500 px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-md shrink-0">
+                                        <i class="fa-solid fa-location-crosshairs"></i> Stamp GPS
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-400">Automatic or manual GPS coordinate stamp for ticket audit trail.</p>
+                            </div>`;
+                        break;
                     case 'location':
                         inputHTML = `
                             <div class="space-y-2">
@@ -1829,7 +1842,37 @@
                 div.innerHTML = labelHTML + inputHTML;
                 container.appendChild(div);
             });
+
+            // Auto-fetch location stamp fields if empty on load
+            form.fields.forEach(field => {
+                if(field.type === 'location_stamp' && !field.hidden) {
+                    fetchLocationStamp(field.id, true);
+                }
+            });
+
             triggerFieldCalculations();
+        }
+
+        function fetchLocationStamp(fieldId, silent = false) {
+            const inputEl = document.getElementById(`field_${fieldId}`);
+            if(!inputEl) return;
+            if(!navigator.geolocation) {
+                if(!silent) showToast('Geolocation not supported', 'error');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude.toFixed(6);
+                    const lon = pos.coords.longitude.toFixed(6);
+                    const acc = pos.coords.accuracy.toFixed(1);
+                    inputEl.value = `${lat}, ${lon} (±${acc}m)`;
+                    if(!silent) showToast('Location stamp acquired!', 'success');
+                },
+                (err) => {
+                    if(!silent) showToast('Could not acquire location stamp: ' + err.message, 'error');
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
         }
 
         function triggerFieldCalculations() {
@@ -1901,7 +1944,7 @@
             renderLedgerTable();
             renderTransmissionsOverview();
             updateSidebarStats();
-            showToast(`Ticket ${ticketId} generated & synced!`, 'success');
+            showToast(`Ticket ${ticketId} generated & synced with location stamp!`, 'success');
             
             postLogToGoogleSheet(newLog, form.name);
             renderActiveFormFields();
@@ -2132,6 +2175,7 @@
                                 <button onclick="moveFieldDown('${form.id}', ${index})" ${index === form.fields.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed p-2 text-slate-400"' : 'class="p-2 text-slate-300 hover:text-white"' } title="Move Down"><i class="fa-solid fa-arrow-down"></i></button>
                                 <select onchange="updateFieldProperty('${form.id}', '${field.id}', 'type', this.value)" class="bg-slate-900 border border-slate-700 text-white text-xs rounded-xl px-3 py-1.5 ml-2">
                                     <option value="text" ${field.type==='text'?'selected':''}>Text Input</option>
+                                    <option value="location_stamp" ${field.type==='location_stamp'?'selected':''}>Location Stamp (GPS)</option>
                                     <option value="barcode" ${field.type==='barcode'?'selected':''}>Barcode / Scanner</option>
                                     <option value="location" ${field.type==='location'?'selected':''}>GPS Map</option>
                                     <option value="picture" ${field.type==='picture'?'selected':''}>Picture</option>
@@ -2204,7 +2248,7 @@
 
         function addFieldToForm(formId) {
             const form = forms.find(f => f.id === formId);
-            form.fields.push({ id: 'f_' + Math.random().toString(36).substring(2, 7), label: 'New Field', type: 'text', required: false, hidden: false });
+            form.fields.push({ id: 'f_' + Math.random().toString(36).substring(2, 7), label: 'Location Stamp', type: 'location_stamp', required: true, hidden: false });
             renderFormEditorWorkspace();
         }
 
@@ -2216,7 +2260,7 @@
 
         function openNewFormModal() {
             const newFormId = 'form_' + Date.now();
-            forms.push({ id: newFormId, name: 'New Form', icon: 'fa-file-lines', allowedRoles: ['Administrator'], fields: [{ id: 'f8', label: 'Item', type: 'text', required: true, hidden: false }] });
+            forms.push({ id: newFormId, name: 'New Form', icon: 'fa-file-lines', allowedRoles: ['Administrator'], fields: [{ id: 'f8', label: 'Location Stamp', type: 'location_stamp', required: true, hidden: false }] });
             selectedDesignFormId = newFormId;
             renderDesignerFormList();
             renderFormEditorWorkspace();
