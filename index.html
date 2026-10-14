@@ -331,7 +331,7 @@
                         </div>
                         <div class="flex-1 relative bg-slate-950 flex items-center justify-center">
                             <iframe id="sheet-iframe-mirror" class="w-full h-full border-0" src="about:blank"></iframe>
-                            <div id="mirror-placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-3 bg-slate-950/90 text-center p-6">
+                            <div id="mirror-placeholder" class="absolute inset-0 flex flex-col items-center justify-center space-y-3 bg-slate-950/90 text-center p-6 hidden">
                                 <i class="fa-solid fa-triangle-exclamation text-amber-400 text-3xl"></i>
                                 <p class="text-sm text-white font-semibold">Google Sheet or Excel URL not configured.</p>
                                 <p class="text-xs text-slate-400 max-w-md">Please go to the <button onclick="switchTab('settings')" class="text-blue-400 underline font-semibold">Connection Settings</button> tab to paste your Direct Sheet Link or Web App URL.</p>
@@ -515,7 +515,7 @@
                         <div id="conn-panel-sheets" class="space-y-4 pt-2 hidden">
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 uppercase mb-1">Google Sheet / Excel Web View URL (for Mirroring)</label>
-                                <input type="text" id="setting-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../edit" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono text-xs">
+                                <input type="text" id="setting-sheet-url" value="https://docs.google.com/spreadsheets/d/1NI19Tem-KLM0P4Tmbu_pHG8oWbVoz256Y01gCscbG-w/edit?gid=191770735#gid=191770735" class="w-full bg-slate-950 border border-slate-700 text-white text-sm rounded-xl px-4 py-2.5 font-mono text-xs">
                             </div>
                         </div>
 
@@ -946,27 +946,18 @@
         }
 
         function refreshSheetMirror() {
-            const settings = JSON.parse(localStorage.getItem('ullswater_connection_settings')) || {};
-            const sheetUrl = settings.sheetUrl || settings.webappId;
             const iframe = document.getElementById('sheet-iframe-mirror');
             const placeholder = document.getElementById('mirror-placeholder');
             const urlDisplay = document.getElementById('mirror-url-display');
             const externalLink = document.getElementById('mirror-external-link');
 
-            if(sheetUrl && sheetUrl.startsWith('http')) {
-                let embedUrl = sheetUrl;
-                if(sheetUrl.includes('/edit')) {
-                    embedUrl = sheetUrl.replace(/\/edit.*$/, '/edit?usp=sharing&embedded=true');
-                }
-                iframe.src = embedUrl;
-                urlDisplay.innerText = `Target: ${sheetUrl}`;
-                externalLink.href = sheetUrl;
-                placeholder.classList.add('hidden');
-            } else {
-                iframe.src = 'about:blank';
-                placeholder.classList.remove('hidden');
-                urlDisplay.innerText = 'Target: Not Configured';
-            }
+            const sheetUrl = "https://docs.google.com/spreadsheets/d/1NI19Tem-KLM0P4Tmbu_pHG8oWbVoz256Y01gCscbG-w/edit?gid=191770735#gid=191770735";
+            let embedUrl = "https://docs.google.com/spreadsheets/d/1NI19Tem-KLM0P4Tmbu_pHG8oWbVoz256Y01gCscbG-w/edit?usp=sharing&embedded=true&gid=191770735#gid=191770735";
+
+            iframe.src = embedUrl;
+            urlDisplay.innerText = `Target: ${sheetUrl}`;
+            externalLink.href = sheetUrl;
+            placeholder.classList.add('hidden');
         }
 
         async function startWebcamFeed() {
