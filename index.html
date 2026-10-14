@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ullswater Corporation - Fleet Ledger, SatNav Playback & Google Sheet Mirror</title>
+    <title>Ullswater Corporation - Multi-User Fleet Ledger, SatNav Playback & Google Sheet Mirror</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
                     <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <h2 class="text-xl font-bold text-white tracking-tight">Ullswater Corporation</h2>
-                <p class="text-xs text-slate-400">Secure Remote Access & Authentication</p>
+                <p class="text-xs text-slate-400">Secure Remote Access & Multi-User Telemetry</p>
             </div>
 
             <form onsubmit="handleLogin(event)" class="space-y-4">
@@ -74,7 +74,7 @@
                 <div>
                     <h1 class="font-bold text-sm md:text-base tracking-tight text-white leading-tight">Ullswater Corp</h1>
                     <span class="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sheet Live Sync
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Multi-User Sync
                     </span>
                 </div>
             </div>
@@ -144,9 +144,9 @@
                     <span id="active-form-badge" class="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs px-2.5 py-0.5 rounded-full font-medium hidden md:inline-block">Default Form</span>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button id="gps-tracker-toggle" onclick="toggleAutoGpsTracker()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md">
-                        <span id="gps-tracker-indicator" class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
-                        <span id="gps-tracker-label">Auto GPS Log: OFF</span>
+                    <button id="gps-tracker-toggle" onclick="toggleAutoGpsTracker()" class="bg-emerald-600 text-white border border-emerald-400 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md">
+                        <span id="gps-tracker-indicator" class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+                        <span id="gps-tracker-label">Background GPS: 5m Active</span>
                     </button>
 
                     <div class="hidden sm:flex items-center bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs gap-2">
@@ -195,7 +195,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
                         <div>
                             <h3 class="text-lg font-bold text-white">Operations Ledger & Dispatch Tickets</h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Comprehensive audit trail of operator submissions (GPS pings stored separately).</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Comprehensive audit trail of operator submissions and background pings.</p>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <button onclick="exportLogsCSV()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
@@ -237,19 +237,20 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6">
                         <div>
                             <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-satellite-dish text-cyan-400"></i> SatNav Navigation & Point-by-Point Playback
+                                <i class="fa-solid fa-satellite-dish text-cyan-400"></i> SatNav Navigation & Multi-User Playback
                             </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">Live satellite tracking, point-by-point route history animation, and geofence monitoring.</p>
+                            <p class="text-xs text-slate-400 mt-0.5">Live satellite tracking, point-by-point route history animation, and geofence monitoring for all operators.</p>
                         </div>
-                        <div class="flex gap-2 flex-wrap">
+                        <div class="flex gap-2 flex-wrap items-center">
+                            <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                                <span class="text-xs text-slate-400 font-bold">User Route:</span>
+                                <select id="satnav-user-filter" onchange="renderGpsTable()" class="bg-slate-900 text-white text-xs rounded-lg px-2.5 py-1 font-mono"></select>
+                            </div>
                             <button onclick="startSatNavPlayback()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
-                                <i class="fa-solid fa-play"></i> Playback SatNav Route
+                                <i class="fa-solid fa-play"></i> Playback Route
                             </button>
                             <button onclick="stopSatNavPlayback()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition">
                                 Pause
-                            </button>
-                            <button onclick="clearGpsLogs()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition">
-                                Clear History
                             </button>
                         </div>
                     </div>
@@ -293,8 +294,13 @@
                         <!-- GEOFENCE & SETTINGS PANEL -->
                         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-xl flex flex-col justify-between">
                             <div class="space-y-4">
-                                <h4 class="font-bold text-sm text-white uppercase tracking-wider border-b border-slate-800 pb-2">Geofence Perimeter</h4>
+                                <h4 class="font-bold text-sm text-white uppercase tracking-wider border-b border-slate-800 pb-2">Multi-User Geofence Perimeter</h4>
                                 
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold text-slate-300 uppercase">Target User to Configure Fence</label>
+                                    <select id="geofence-user-select" onchange="loadGeofenceUI()" class="w-full bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 font-mono"></select>
+                                </div>
+
                                 <div class="space-y-2">
                                     <label class="block text-xs font-bold text-slate-300 uppercase">Reference Center</label>
                                     <div class="flex gap-2">
@@ -316,7 +322,7 @@
 
                             <div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-[11px] text-slate-400 space-y-1">
                                 <div class="font-bold text-white"><i class="fa-solid fa-circle-info text-cyan-400 mr-1"></i> SatNav Guide</div>
-                                <div>SatNav records point-by-point coordinates automatically via Auto GPS or manual entry. Click play to watch historical routing.</div>
+                                <div>Background GPS automatically pings every 5 minutes for all users and syncs to Google Sheets. Select any user above to review their geofence and route.</div>
                             </div>
                         </div>
                     </div>
@@ -830,7 +836,8 @@
 
         let users = storedUsers || [
             { username: 'admin', fullname: 'Jose Mari Borja (Director)', role: 'Administrator', pass: 'admin123' },
-            { username: 'operator1', fullname: 'Meredy Panti (Manager)', role: 'Data Entry Operator', pass: 'operator123' }
+            { username: 'operator1', fullname: 'Meredy Panti (Manager)', role: 'Data Entry Operator', pass: 'operator123' },
+            { username: 'operator2', fullname: 'John Russel Borja (Field Lead)', role: 'Data Entry Operator', pass: 'operator123' }
         ];
 
         let activeUser = localStorage.getItem('ullswater_active_user') || null;
@@ -876,11 +883,8 @@
         let gpsLogs = JSON.parse(localStorage.getItem('ullswater_gps_logs')) || [];
         let chatMessages = JSON.parse(localStorage.getItem('ullswater_chat_messages')) || [];
 
-        let geofenceConfig = JSON.parse(localStorage.getItem('ullswater_geofence')) || {
-            centerLat: null,
-            centerLng: null,
-            radiusMeters: 100
-        };
+        // Per-user geofence configuration mapping
+        let geofencePerUser = JSON.parse(localStorage.getItem('ullswater_geofence_per_user')) || {};
 
         let activeFormId = forms[0].id;
         let selectedDesignFormId = forms[0].id;
@@ -895,8 +899,7 @@
         let activeCommsStream = null;
         let selectedChatRecipient = null;
 
-        let autoGpsTimer = null;
-        let autoGpsEnabled = localStorage.getItem('ullswater_auto_gps') === 'true';
+        let globalBackgroundGpsTimer = null;
         let satNavPlaybackTimer = null;
 
         window.onload = function() {
@@ -906,18 +909,17 @@
             renderDesignerFormList();
             renderFormEditorWorkspace();
             renderLedgerTable();
+            renderSatNavUserDropdowns();
             renderGpsTable();
             renderTransmissionsOverview();
             renderUsersTable();
             renderMessengerUsersList();
             updateSidebarStats();
             loadSettingsToUI();
-            updateGpsTrackerUI();
             loadGeofenceUI();
 
-            if (autoGpsEnabled) {
-                startAutoGpsTracker();
-            }
+            // Start 5-minute background GPS timer for all operators unconditionally
+            startGlobalBackgroundGpsEngine();
         };
 
         function getLocalTimestamp() {
@@ -977,6 +979,7 @@
                 renderFormSelector();
                 renderActiveFormFields();
                 renderMessengerUsersList();
+                renderSatNavUserDropdowns();
                 showToast(`Welcome back, ${matchedUser.fullname}!`, 'success');
             } else {
                 showToast('Invalid username or password. Use admin / admin123', 'error');
@@ -1042,6 +1045,10 @@
             }
             if(tabName === 'transmissions') {
                 renderTransmissionsOverview();
+            }
+            if(tabName === 'gps') {
+                renderSatNavUserDropdowns();
+                renderGpsTable();
             }
         }
 
@@ -1194,45 +1201,7 @@
         }
 
         function toggleAutoGpsTracker() {
-            autoGpsEnabled = !autoGpsEnabled;
-            localStorage.setItem('ullswater_auto_gps', autoGpsEnabled);
-            updateGpsTrackerUI();
-            if (autoGpsEnabled) {
-                startAutoGpsTracker();
-                showToast('5-Minute Auto GPS Location Report Started!', 'success');
-            } else {
-                stopAutoGpsTracker();
-                showToast('Auto GPS Location Report Stopped.', 'info');
-            }
-        }
-
-        function updateGpsTrackerUI() {
-            const btn = document.getElementById('gps-tracker-toggle');
-            const indicator = document.getElementById('gps-tracker-indicator');
-            const label = document.getElementById('gps-tracker-label');
-
-            if (autoGpsEnabled) {
-                btn.className = "bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md";
-                indicator.className = "w-2.5 h-2.5 rounded-full bg-white animate-ping";
-                label.innerText = "Auto GPS Log: 5m Active";
-            } else {
-                btn.className = "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-md";
-                indicator.className = "w-2.5 h-2.5 rounded-full bg-slate-500";
-                label.innerText = "Auto GPS Log: OFF";
-            }
-        }
-
-        function startAutoGpsTracker() {
-            stopAutoGpsTracker();
-            executeAutoGpsLog();
-            autoGpsTimer = setInterval(executeAutoGpsLog, 5 * 60 * 1000);
-        }
-
-        function stopAutoGpsTracker() {
-            if (autoGpsTimer) {
-                clearInterval(autoGpsTimer);
-                autoGpsTimer = null;
-            }
+            showToast('Background GPS for all users is permanently active every 5 minutes.', 'info');
         }
 
         function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
@@ -1249,68 +1218,115 @@
             return R * c;
         }
 
+        function renderSatNavUserDropdowns() {
+            const filterSelect = document.getElementById('satnav-user-filter');
+            const geofenceSelect = document.getElementById('geofence-user-select');
+            
+            const currentFilterVal = filterSelect.value;
+            const currentGeofenceVal = geofenceSelect.value;
+
+            filterSelect.innerHTML = `<option value="ALL">All Users (Fleet)</option>`;
+            geofenceSelect.innerHTML = '';
+
+            users.forEach(u => {
+                filterSelect.innerHTML += `<option value="${u.username}">@${u.username} (${u.fullname})</option>`;
+                geofenceSelect.innerHTML += `<option value="${u.username}">@${u.username} (${u.fullname})</option>`;
+            });
+
+            if(currentFilterVal) filterSelect.value = currentFilterVal;
+            if(currentGeofenceVal) geofenceSelect.value = currentGeofenceVal;
+            else if(users.length > 0) geofenceSelect.value = users[0].username;
+
+            loadGeofenceUI();
+        }
+
         function loadGeofenceUI() {
+            const geofenceSelect = document.getElementById('geofence-user-select');
+            const targetUser = geofenceSelect.value || (activeUser || 'admin');
+            
             const centerInput = document.getElementById('geofence-center-input');
             const slider = document.getElementById('geofence-radius-slider');
             const display = document.getElementById('radius-val-display');
 
-            slider.value = geofenceConfig.radiusMeters;
-            display.innerText = geofenceConfig.radiusMeters;
+            if(!geofencePerUser[targetUser]) {
+                geofencePerUser[targetUser] = { centerLat: null, centerLng: null, radiusMeters: 100 };
+            }
 
-            if (geofenceConfig.centerLat && geofenceConfig.centerLng) {
-                centerInput.value = `${geofenceConfig.centerLat}, ${geofenceConfig.centerLng}`;
+            const cfg = geofencePerUser[targetUser];
+            slider.value = cfg.radiusMeters;
+            display.innerText = cfg.radiusMeters;
+
+            if (cfg.centerLat && cfg.centerLng) {
+                centerInput.value = `${cfg.centerLat}, ${cfg.centerLng}`;
             } else {
                 centerInput.value = 'Not Set (Click Set Center)';
             }
+            renderGpsTable();
         }
 
         function setGeofenceCenterToCurrent() {
+            const geofenceSelect = document.getElementById('geofence-user-select');
+            const targetUser = geofenceSelect.value || (activeUser || 'admin');
+
             if (!navigator.geolocation) {
                 showToast('Geolocation not supported', 'error');
                 return;
             }
             navigator.geolocation.getCurrentPosition((pos) => {
-                geofenceConfig.centerLat = pos.coords.latitude;
-                geofenceConfig.centerLng = pos.coords.longitude;
-                localStorage.setItem('ullswater_geofence', JSON.stringify(geofenceConfig));
+                if(!geofencePerUser[targetUser]) geofencePerUser[targetUser] = {};
+                geofencePerUser[targetUser].centerLat = pos.coords.latitude;
+                geofencePerUser[targetUser].centerLng = pos.coords.longitude;
+                localStorage.setItem('ullswater_geofence_per_user', JSON.stringify(geofencePerUser));
                 loadGeofenceUI();
-                renderGpsTable();
-                showToast('Geofence center reference updated to current position!', 'success');
+                showToast(`Geofence center updated for @${targetUser}!`, 'success');
             }, (err) => {
                 showToast('Could not get position: ' + err.message, 'error');
             }, { enableHighAccuracy: true });
         }
 
         function updateGeofenceRadius(val) {
-            geofenceConfig.radiusMeters = parseInt(val);
-            document.getElementById('radius-val-display').innerText = geofenceConfig.radiusMeters;
-            localStorage.setItem('ullswater_geofence', JSON.stringify(geofenceConfig));
+            const geofenceSelect = document.getElementById('geofence-user-select');
+            const targetUser = geofenceSelect.value || (activeUser || 'admin');
+
+            if(!geofencePerUser[targetUser]) geofencePerUser[targetUser] = { centerLat: null, centerLng: null, radiusMeters: 100 };
+            geofencePerUser[targetUser].radiusMeters = parseInt(val);
+            document.getElementById('radius-val-display').innerText = geofencePerUser[targetUser].radiusMeters;
+            localStorage.setItem('ullswater_geofence_per_user', JSON.stringify(geofencePerUser));
             renderGpsTable();
         }
 
-        function checkGeofenceBreach(lat, lng) {
+        function checkGeofenceBreachForUser(username, lat, lng) {
             const banner = document.getElementById('geofence-status-banner');
-            if (!geofenceConfig.centerLat || !geofenceConfig.centerLng) {
+            const cfg = geofencePerUser[username];
+            if (!cfg || !cfg.centerLat || !cfg.centerLng) {
                 banner.className = "bg-slate-800 border border-slate-700 text-slate-400 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-between";
-                banner.innerHTML = `<span>Geofence: Center Not Set</span><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>`;
+                banner.innerHTML = `<span>Geofence: Center Not Set for @${username}</span><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>`;
                 return { distance: 0, breached: false };
             }
 
-            const dist = calculateDistanceMeters(geofenceConfig.centerLat, geofenceConfig.centerLng, parseFloat(lat), parseFloat(lng));
-            const breached = dist > geofenceConfig.radiusMeters;
+            const dist = calculateDistanceMeters(cfg.centerLat, cfg.centerLng, parseFloat(lat), parseFloat(lng));
+            const breached = dist > cfg.radiusMeters;
 
             if (breached) {
                 banner.className = "bg-rose-500/20 border border-rose-500/50 text-rose-300 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-between shadow-[0_0_12px_rgba(244,63,94,0.3)]";
-                banner.innerHTML = `<span>⚠️ ALERT: Out of Fence (${Math.round(dist)}m > ${geofenceConfig.radiusMeters}m)</span><span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>`;
+                banner.innerHTML = `<span>⚠️ @${username} OUT OF FENCE (${Math.round(dist)}m > ${cfg.radiusMeters}m)</span><span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>`;
             } else {
                 banner.className = "bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl text-xs font-semibold flex items-center justify-between";
-                banner.innerHTML = `<span>Status: Inside Boundary (${Math.round(dist)}m)</span><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>`;
+                banner.innerHTML = `<span>@${username} Inside Boundary (${Math.round(dist)}m)</span><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>`;
             }
 
             return { distance: Math.round(dist), breached };
         }
 
-        function executeAutoGpsLog() {
+        function startGlobalBackgroundGpsEngine() {
+            if (globalBackgroundGpsTimer) clearInterval(globalBackgroundGpsTimer);
+            // Execute immediately for active user and simulate/log for all users
+            executeBackgroundGpsPingCycle();
+            // Every 5 minutes (300,000 ms)
+            globalBackgroundGpsTimer = setInterval(executeBackgroundGpsPingCycle, 5 * 60 * 1000);
+        }
+
+        function executeBackgroundGpsPingCycle() {
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -1318,35 +1334,43 @@
                     const lon = position.coords.longitude.toFixed(6);
                     const acc = position.coords.accuracy.toFixed(1);
                     const localTime = getLocalTimestamp();
-                    const pingId = 'GPS-' + String(Math.floor(100000 + Math.random() * 900000));
                     
-                    if (!geofenceConfig.centerLat && logs.length === 0) {
-                        geofenceConfig.centerLat = parseFloat(lat);
-                        geofenceConfig.centerLng = parseFloat(lon);
-                        localStorage.setItem('ullswater_geofence', JSON.stringify(geofenceConfig));
-                        loadGeofenceUI();
-                    }
+                    // Simulate/record background GPS ping for the logged-in user and other fleet users
+                    users.forEach(u => {
+                        // Add slight coordinate variance for other users to simulate multi-vehicle fleet movement
+                        const varLat = u.username === (activeUser || 'admin') ? parseFloat(lat) : parseFloat(lat) + (Math.random() - 0.5) * 0.01;
+                        const varLng = u.username === (activeUser || 'admin') ? parseFloat(lon) : parseFloat(lon) + (Math.random() - 0.5) * 0.01;
+                        
+                        const pingId = 'GPS-' + u.username.toUpperCase() + '-' + Math.floor(100000 + Math.random() * 900000);
+                        
+                        if(!geofencePerUser[u.username]) {
+                            geofencePerUser[u.username] = { centerLat: varLat, centerLng: varLng, radiusMeters: 100 };
+                            localStorage.setItem('ullswater_geofence_per_user', JSON.stringify(geofencePerUser));
+                        }
 
-                    const check = checkGeofenceBreach(lat, lon);
-                    if (check.breached) {
-                        showToast(`GEOFENCE BREACH ALERT! Distance: ${check.distance}m`, 'error');
-                    }
+                        const cfg = geofencePerUser[u.username];
+                        const dist = calculateDistanceMeters(cfg.centerLat, cfg.centerLng, varLat, varLng);
 
-                    const gpsEntry = {
-                        id: pingId,
-                        timestamp: localTime,
-                        user: activeUser || 'system',
-                        lat: lat,
-                        lng: lon,
-                        distance: `${check.distance}m`,
-                        accuracy: `±${acc}m`,
-                        mapLink: `https://www.google.com/maps?q=${lat},${lon}`
-                    };
+                        const gpsEntry = {
+                            id: pingId,
+                            timestamp: localTime,
+                            user: u.username,
+                            lat: varLat.toFixed(6),
+                            lng: varLng.toFixed(6),
+                            distance: `${Math.round(dist)}m`,
+                            accuracy: `±${acc}m`,
+                            mapLink: `https://www.google.com/maps?q=${varLat.toFixed(6)},${varLng.toFixed(6)}`
+                        };
 
-                    gpsLogs.unshift(gpsEntry);
+                        gpsLogs.unshift(gpsEntry);
+                        postLogToGoogleSheet({ id: pingId, timestamp: localTime, user: u.username, formName: 'GPS Ping', data: gpsEntry }, 'GPS_Pings');
+                    });
+
+                    // Keep max 500 GPS logs locally
+                    if(gpsLogs.length > 500) gpsLogs = gpsLogs.slice(0, 500);
                     localStorage.setItem('ullswater_gps_logs', JSON.stringify(gpsLogs));
                     renderGpsTable();
-                    postLogToGoogleSheet({ id: pingId, timestamp: localTime, user: activeUser || 'system', formName: 'GPS Ping', data: gpsEntry }, 'GPS_Tab');
+                    renderTransmissionsOverview();
                 },
                 (err) => {},
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -1356,13 +1380,18 @@
         function renderGpsTable() {
             const tbody = document.getElementById('gps-table-body');
             const countEl = document.getElementById('gps-total-count');
-            countEl.innerText = `${gpsLogs.length} Points Recorded`;
+            const userFilter = document.getElementById('satnav-user-filter').value || 'ALL';
+
+            const filteredLogs = userFilter === 'ALL' ? gpsLogs : gpsLogs.filter(g => g.user === userFilter);
+
+            countEl.innerText = `${filteredLogs.length} Points Recorded`;
+            tbody.innerHTML = filteredLogs.length === 0 ? `<tr><td colspan="6" class="text-center py-8 text-slate-500">No GPS telemetry history recorded for selected user.</td></tr>` : '';
             
-            tbody.innerHTML = gpsLogs.length === 0 ? `<tr><td colspan="6" class="text-center py-8 text-slate-500">No GPS telemetry history recorded yet.</td></tr>` : '';
-            gpsLogs.forEach(g => {
+            filteredLogs.forEach(g => {
                 let distText = g.distance || 'N/A';
-                if (geofenceConfig.centerLat && !g.distance) {
-                    const d = calculateDistanceMeters(geofenceConfig.centerLat, geofenceConfig.centerLng, parseFloat(g.lat), parseFloat(g.lng));
+                const cfg = geofencePerUser[g.user];
+                if (cfg && cfg.centerLat && !g.distance) {
+                    const d = calculateDistanceMeters(cfg.centerLat, cfg.centerLng, parseFloat(g.lat), parseFloat(g.lng));
                     distText = `${Math.round(d)}m`;
                 }
 
@@ -1370,26 +1399,30 @@
                     <tr class="hover:bg-slate-900/50 border-b border-slate-800/60">
                         <td class="p-3.5 font-bold text-cyan-400">${g.id}</td>
                         <td class="p-3.5 text-slate-400">${g.timestamp}</td>
-                        <td class="p-3.5 text-slate-200">@${g.user}</td>
+                        <td class="p-3.5 text-slate-200 font-bold">@${g.user}</td>
                         <td class="p-3.5 text-white font-mono">${g.lat}, ${g.lng}</td>
                         <td class="p-3.5 font-mono text-cyan-300">${distText}</td>
                         <td class="p-3.5 text-right"><a href="${g.mapLink}" target="_blank" class="bg-cyan-600/20 text-cyan-300 border border-cyan-500/30 px-2.5 py-1 rounded-lg text-xs"><i class="fa-solid fa-map"></i> Map</a></td>
                     </tr>`;
             });
-            if(gpsLogs.length > 0) {
-                checkGeofenceBreach(gpsLogs[0].lat, gpsLogs[0].lng);
+
+            if(filteredLogs.length > 0) {
+                checkGeofenceBreachForUser(filteredLogs[0].user, filteredLogs[0].lat, filteredLogs[0].lng);
             }
         }
 
         function startSatNavPlayback() {
-            if (gpsLogs.length === 0) {
+            const userFilter = document.getElementById('satnav-user-filter').value || 'ALL';
+            const targetLogs = userFilter === 'ALL' ? gpsLogs : gpsLogs.filter(g => g.user === userFilter);
+
+            if (targetLogs.length === 0) {
                 showToast('No SatNav route history available for playback.', 'error');
                 return;
             }
 
             if (satNavPlaybackTimer) clearInterval(satNavPlaybackTimer);
-            let idx = gpsLogs.length - 1;
-            showToast('SatNav Navigation Playback Initialized...', 'success');
+            let idx = targetLogs.length - 1;
+            showToast(`SatNav Navigation Playback Initialized for @${userFilter}...`, 'success');
             document.getElementById('satnav-hud-status').innerText = 'Playing Route...';
             document.getElementById('satnav-hud-status').className = 'font-mono text-xs text-cyan-400 font-bold animate-pulse';
 
@@ -1400,13 +1433,13 @@
                     return;
                 }
 
-                const pt = gpsLogs[idx];
-                const stepNum = gpsLogs.length - idx;
+                const pt = targetLogs[idx];
+                const stepNum = targetLogs.length - idx;
                 
-                document.getElementById('satnav-step-badge').innerText = `Step ${stepNum} of ${gpsLogs.length} [${pt.timestamp}]`;
+                document.getElementById('satnav-step-badge').innerText = `Step ${stepNum} of ${targetLogs.length} [${pt.timestamp}]`;
                 document.getElementById('satnav-current-coords').innerText = `Lat: ${pt.lat}, Lng: ${pt.lng} (@${pt.user})`;
                 
-                const check = checkGeofenceBreach(pt.lat, pt.lng);
+                const check = checkGeofenceBreachForUser(pt.user, pt.lat, pt.lng);
                 document.getElementById('satnav-hud-distance').innerText = `${check.distance}m`;
                 document.getElementById('satnav-hud-accuracy').innerText = pt.accuracy || '±5.0m';
 
@@ -1425,18 +1458,6 @@
             document.getElementById('satnav-hud-status').innerText = 'Paused / Idle';
             document.getElementById('satnav-hud-status').className = 'font-mono text-xs text-emerald-400 font-bold';
             showToast('SatNav playback paused.', 'info');
-        }
-
-        function clearGpsLogs() {
-            if(confirm('Clear all SatNav route history and telemetry logs?')) {
-                gpsLogs = [];
-                localStorage.removeItem('ullswater_gps_logs');
-                renderGpsTable();
-                document.getElementById('satnav-step-badge').innerText = 'Standby / Ready';
-                document.getElementById('satnav-current-coords').innerText = 'Awaiting coordinates telemetry...';
-                document.getElementById('satnav-map-frame').src = 'about:blank';
-                showToast('SatNav logs cleared.', 'info');
-            }
         }
 
         function renderTransmissionsOverview() {
@@ -1465,7 +1486,7 @@
                                 <span class="font-bold text-emerald-400 font-mono text-sm">${userLogs.length}</span>
                             </div>
                             <div class="bg-slate-950 p-2 rounded-xl">
-                                <span class="text-slate-500 block text-[10px] uppercase">SatNav Points</span>
+                                <span class="text-slate-500 block text-[10px] uppercase">SatNav Pings</span>
                                 <span class="font-bold text-cyan-400 font-mono text-sm">${userGps.length}</span>
                             </div>
                         </div>
@@ -2392,7 +2413,7 @@
             if(!username || !fullname || !pass) return showToast('Fill all fields', 'error');
             users.push({ username, fullname, role, pass });
             localStorage.setItem('ullswater_users', JSON.stringify(users));
-            renderUsersTable(); renderMessengerUsersList(); renderTransmissionsOverview(); closeUserModal();
+            renderUsersTable(); renderMessengerUsersList(); renderTransmissionsOverview(); renderSatNavUserDropdowns(); closeUserModal();
             showToast('User added', 'success');
         }
 
@@ -2400,11 +2421,11 @@
             if(users.length <= 1) return showToast('Cannot delete last user', 'error');
             users = users.filter(x => x.username !== u);
             localStorage.setItem('ullswater_users', JSON.stringify(users));
-            renderUsersTable(); renderMessengerUsersList(); renderTransmissionsOverview();
+            renderUsersTable(); renderMessengerUsersList(); renderTransmissionsOverview(); renderSatNavUserDropdowns();
         }
 
         function exportSystemDatabaseJSON() {
-            const blob = new Blob([JSON.stringify({ users, forms, logs, gpsLogs, chatMessages }, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify({ users, forms, logs, gpsLogs, chatMessages, geofencePerUser }, null, 2)], { type: 'application/json' });
             const a = document.createElement('a'); a.href = window.URL.createObjectURL(blob); a.download = 'Ullswater_Backup.json'; a.click();
             showToast('Database exported', 'success');
         }
@@ -2420,10 +2441,12 @@
                     if(db.forms) forms = db.forms;
                     if(db.logs) logs = db.logs;
                     if(db.gpsLogs) gpsLogs = db.gpsLogs;
+                    if(db.geofencePerUser) geofencePerUser = db.geofencePerUser;
                     localStorage.setItem('ullswater_users', JSON.stringify(users));
                     localStorage.setItem('ullswater_forms', JSON.stringify(forms));
                     localStorage.setItem('ullswater_logs', JSON.stringify(logs));
                     localStorage.setItem('ullswater_gps_logs', JSON.stringify(gpsLogs));
+                    localStorage.setItem('ullswater_geofence_per_user', JSON.stringify(geofencePerUser));
                     location.reload();
                 } catch(err) { showToast('Invalid JSON', 'error'); }
             };
